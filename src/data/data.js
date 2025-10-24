@@ -5,17 +5,17 @@ function seed(){
     // Reemplaza el contenido del array "initial" por este:
   const initial = [
     // 🔹 Juegos de mesa
-    { id: 1,  name: 'Catan',                  price: 39990, category: 'Juegos de mesa', image: '', offer: true },
-    { id: 2,  name: 'Carcassonne',            price: 34990, category: 'Juegos de mesa', image: '', offer: false },
+    { id: 1,  name: 'Catan',                  price: 39990, category: 'Juegos de mesa',image: '/Img/Producto_Img/Catan.png', offer: true },
+    { id: 2,  name: 'Carcassonne',            price: 34990, category: 'Juegos de mesa', image: '/Img/Producto_Img/Carcassone.png', offer: false },
 
     // 🔹 Accesorios
-    { id: 3,  name: 'Auriculares Gamer',      price: 59990, category: 'Accesorios',     image: '', offer: false },
-    { id: 4,  name: 'Mouse Gamer',            price: 29990, category: 'Accesorios',     image: '', offer: true },
+    { id: 3,  name: 'Auriculares Gamer',      price: 59990, category: 'Accesorios',     image: '/Img/Producto_Img/Auri.png', offer: false },
+    { id: 4,  name: 'Mouse Gamer',            price: 29990, category: 'Accesorios',     image: '/Img/Producto_Img/MouseGamer.png', offer: true },
     { id: 5,  name: 'Mousepad',               price: 12990, category: 'Accesorios',     image: '', offer: false },
     { id: 6,  name: 'Silla Gamer',            price: 129990,category: 'Accesorios',     image: '', offer: false },
 
     // 🔹 Consolas
-    { id: 7,  name: 'PlayStation 5',          price: 599990,category: 'Consolas',       image: '', offer: true },
+    { id: 7,  name: 'PlayStation 5',          price: 599990,category: 'Consolas',       image: '/Img/Producto_Img/Play5.png', offer: true },
     { id: 8,  name: 'Controlador Inalámbrico',price: 54990, category: 'Consolas',       image: '', offer: false },
 
     // 🔹 PCs
