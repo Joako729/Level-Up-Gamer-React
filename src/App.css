@@ -1,13 +1,146 @@
-:root{ --primario:#1E90FF; --acento:#39FF14; --oscuro:#0B0F1A; }
-body{ background:#f6f8fb; }
-.navbar{ box-shadow:0 2px 10px rgba(0,0,0,.1); }
-.hero{
-  background: linear-gradient(135deg, rgba(30,144,255,.85), rgba(57,255,20,.85));
-  border-radius:1rem; color:#fff; padding:3rem 1.5rem;
+:root{
+  /* 🎨 Paleta igual a tu página web */
+  --bg: #252525;
+  --text: #FFFFFF;
+  --primario: #1E90FF;   /* azul principal */
+  --acento:   #39FF14;   /* verde neón */
+  --oscuro:   #0B0F1A;   /* tono dark extra */
+  --card:   #161616;
+  --border: #252525;
+  --danger: #ff3b3b;
 }
-.badge-oferta{ position:absolute; top:.5rem; left:.5rem; }
-.card .precio{ font-weight:800; font-size:1.1rem; }
-.table-carrito td, .table-carrito th{ vertical-align:middle; }
-.resumen-checkout{ background:#fff; border-radius:1rem; box-shadow:0 6px 24px rgba(0,0,0,.08); padding:1rem; }
-.titulo-seccion{ font-weight:800; }
-footer{ box-shadow:0 -2px 10px rgba(0,0,0,.06); }
+
+body{
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* NAVBAR Y FOOTER */
+.navbar{
+  background: rgba(24,24,24,0.9);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+}
+
+footer{
+  background: #181818;
+  color: #bbb;
+  box-shadow: none;
+  border-top: 1px solid var(--border);
+}
+
+/* HERO Y TITULOS */
+.hero{
+  background: linear-gradient(180deg, rgba(17,17,17,.9), rgba(17,17,17,.6));
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  color: var(--text);
+  padding: 3rem 1.5rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+
+.titulo-seccion{ font-weight:800; color: var(--text); }
+
+/* CARDS Y BADGES */
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.card:hover{
+  transform: translateY(-2px);
+  border-color: var(--primario);
+  box-shadow: 0 6px 22px rgba(30,144,255,.1);
+}
+.card .precio{ color: var(--acento); font-weight:800; font-size:1.1rem; }
+
+.badge-oferta{
+  position:absolute; top:.5rem; left:.5rem;
+  background: var(--acento) !important;
+  color:#000;
+  font-weight:700;
+}
+
+/* TABLAS Y RESUMEN */
+.table-carrito td, .table-carrito th{ color: var(--text); vertical-align:middle; }
+.resumen-checkout{
+  background: var(--card);
+  border-radius:1rem;
+  box-shadow:0 6px 24px rgba(0,0,0,.2);
+  padding:1rem;
+  color: var(--text);
+}
+
+/* BOTONES Y ENLACES */
+a{ color: var(--primario); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+
+.btn-primary{
+  background: var(--primario);
+  border-color: var(--primario);
+  color: #000;
+}
+.btn-primary:hover{
+  filter: brightness(1.05);
+}
+
+.btn-outline-secondary{
+  color: var(--text);
+  border-color: var(--border);
+}
+.btn-outline-secondary:hover{
+  background: var(--border);
+}
+
+/* 🔧 Texto blanco dentro de las tarjetas */
+.card, 
+.card .card-title,
+.card .card-text,
+.card h5, 
+.card h6, 
+.card p, 
+.card span {
+  color: var(--text) !important;
+}
+
+/* 🌙 Sidebar de categorías en tema oscuro */
+.card .card-header{
+  background: #181818;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Colores base de la lista */
+.list-group{
+  --bs-list-group-bg: var(--card);
+  --bs-list-group-color: var(--text);
+  --bs-list-group-border-color: var(--border);
+}
+
+.list-group-item{
+  background: var(--card);
+  color: var(--text);
+  border-color: var(--border);
+}
+.list-group-item:hover{
+  background: rgba(255,255,255,.05);
+}
+
+/* Estado activo (seleccionada) */
+.list-group-item.active{
+  background: var(--primario);
+  color: #000;
+  border-color: var(--primario);
+}
+
+/* Badge "Activa" (ya sea bg-light o el genérico) */
+.list-group-item .badge{
+  background: rgba(255,255,255,.15) !important;
+  color: var(--text) !important;
+}
+.list-group-item.active .badge{
+  background: rgba(0,0,0,.15) !important;
+  color: #000 !important;
+}
