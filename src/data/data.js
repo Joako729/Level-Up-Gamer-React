@@ -2,12 +2,29 @@ const KEYS = { products:'lug_products', cart:'lug_cart', profile:'lug_profile', 
 
 function seed(){
   if(!localStorage.getItem(KEYS.products)){
-    const initial = [
-      { id:1, name:'Control Pro', price:39990, category:'Accesorios', image:'', offer:true },
-      { id:2, name:'Auriculares Razer', price:59990, category:'Accesorios', image:'', offer:false },
-      { id:3, name:'Teclado Mecánico', price:49990, category:'Periféricos', image:'', offer:true },
-      { id:4, name:'Mouse Gamer 8K', price:29990, category:'Periféricos', image:'', offer:false },
-    ];
+    // Reemplaza el contenido del array "initial" por este:
+  const initial = [
+    // 🔹 Juegos de mesa
+    { id: 1,  name: 'Catan',                  price: 39990, category: 'Juegos de mesa', image: '', offer: true },
+    { id: 2,  name: 'Carcassonne',            price: 34990, category: 'Juegos de mesa', image: '', offer: false },
+
+    // 🔹 Accesorios
+    { id: 3,  name: 'Auriculares Gamer',      price: 59990, category: 'Accesorios',     image: '', offer: false },
+    { id: 4,  name: 'Mouse Gamer',            price: 29990, category: 'Accesorios',     image: '', offer: true },
+    { id: 5,  name: 'Mousepad',               price: 12990, category: 'Accesorios',     image: '', offer: false },
+    { id: 6,  name: 'Silla Gamer',            price: 129990,category: 'Accesorios',     image: '', offer: false },
+
+    // 🔹 Consolas
+    { id: 7,  name: 'PlayStation 5',          price: 599990,category: 'Consolas',       image: '', offer: true },
+    { id: 8,  name: 'Controlador Inalámbrico',price: 54990, category: 'Consolas',       image: '', offer: false },
+
+    // 🔹 PCs
+    { id: 9,  name: 'PC Gamer ASUS',          price: 899990,category: 'PCs',            image: '', offer: false },
+
+    // 🔹 Ropa
+    { id: 10, name: 'Polera Gamer',           price: 19990, category: 'Ropa',           image: '', offer: false },
+  ];
+
     localStorage.setItem(KEYS.products, JSON.stringify(initial));
   }
   if(!localStorage.getItem(KEYS.cart)) localStorage.setItem(KEYS.cart, JSON.stringify([]));
