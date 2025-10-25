@@ -1,20 +1,25 @@
 import React from 'react';
-import { listCategories, listProductsByCategory, addToCart } from '../data/data';
+import { listCategories, listProductsByCategory, listProducts, addToCart } from '../data/data';
 import ProductCard from '../components/ProductCard';
 
-export default function Categorias(){
-  // Orden fijo deseado (como en tu otra web)
-  const ORDEN = ['Juegos de mesa', 'Accesorios', 'Consolas', 'PCs', 'Ropa'];
+export default function Categorias() {
+  // Orden fijo deseado
+  const ORDEN = ['Todos', 'Juegos de mesa', 'Accesorios', 'Consolas', 'PCs', 'Ropa'];
 
-  // Obtenemos categorías que existan en datos y las ordenamos según ORDEN
+  // Traemos categorías reales y anteponemos "Todos"
   const categoriasRaw = listCategories();
-  const categorias = ORDEN.filter(c => categoriasRaw.includes(c));
+  const categorias = ['Todos', ...ORDEN.filter(c => c !== 'Todos' && categoriasRaw.includes(c))];
 
   const [activa, setActiva] = React.useState(categorias[0]);
-  const productos = listProductsByCategory(activa);
+
+  // Si es "Todos", mostramos todo el catálogo
+  const productos = activa === 'Todos'
+    ? listProducts()
+    : listProductsByCategory(activa);
 
   return (
     <div className="row g-4">
+      {/* Sidebar de categorías */}
       <aside className="col-12 col-lg-3">
         <div className="card">
           <div className="card-header fw-bold">Categorías</div>
@@ -22,18 +27,24 @@ export default function Categorias(){
             {categorias.map(c => (
               <li
                 key={c}
-                className={"list-group-item d-flex justify-content-between align-items-center " + (c===activa ? "active text-white" : "")}
-                style={{cursor:'pointer'}}
-                onClick={()=>setActiva(c)}
+                className={
+                  'list-group-item d-flex justify-content-between align-items-center ' +
+                  (c === activa ? 'active text-white' : '')
+                }
+                style={{ cursor: 'pointer' }}
+                onClick={() => setActiva(c)}
               >
                 <span>{c}</span>
-                {c===activa && <span className="badge bg-light text-dark">Activa</span>}
+                {c === activa && (
+                  <span className="badge bg-light text-dark">Activa</span>
+                )}
               </li>
             ))}
           </ul>
         </div>
       </aside>
 
+      {/* Productos */}
       <section className="col-12 col-lg-9">
         <h2 className="titulo-seccion mb-3">{activa}</h2>
         <div className="row g-3">
@@ -50,3 +61,4 @@ export default function Categorias(){
     </div>
   );
 }
+
