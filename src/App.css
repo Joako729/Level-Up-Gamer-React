@@ -144,3 +144,55 @@ a:hover{ text-decoration: underline; }
   background: rgba(0,0,0,.15) !important;
   color: #000 !important;
 }
+
+/* ====== HOME (mock del anexo) ====== */
+.hero-mock{
+  height: 300px;
+  width: 100%;
+  background: linear-gradient(180deg, rgba(17,17,17,.9), rgba(17,17,17,.6));
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+
+/* puntitos del carrusel */
+.hero-mock .dot{
+  display:inline-block;
+  width:8px; height:8px; border-radius:50%;
+  background: rgba(255,255,255,.35);
+}
+.hero-mock .dot:nth-child(2){ background: var(--primario); }
+
+/* tarjetas de categorías (400x200 aprox) */
+.cat-card{
+  min-height: 200px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.cat-card:hover{
+  transform: translateY(-2px);
+  border-color: var(--primario);
+  box-shadow: 0 6px 22px rgba(30,144,255,.1);
+}
+.cat-card .card-title{ color: var(--text) !important; }
+
+/* Sidebar fijo en categorías */
+.sticky-sidebar{
+  position: sticky;
+  top: 1rem;          /* margen desde el top */
+  z-index: 1020;      /* por encima del contenido */
+}
+
+/* 🔝 Asegurar que el menú de la navbar quede por encima de cards/sidebar */
+.navbar{
+  position: sticky;  /* queda fija arriba al hacer scroll */
+  top: 0;
+  z-index: 1100;     /* más que el sidebar (1020) */
+}
+
+/* El dropdown "Categorías" de la navbar sobre todo */
+.dropdown-menu{
+  z-index: 1200;     /* > navbar y > sidebar */
+}
