@@ -1,7 +1,40 @@
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+
+const CATS = ['Todos','Juegos de mesa','Accesorios','Consolas','PCs','Ropa'];
 
 export default function Navbar(){
+  const navigate = useNavigate();
+  const [q, setQ] = React.useState('');
+
+  function normaliza(s){
+    return (s || '').toString().trim().toLowerCase();
+  }
+
+  function onSearch(e){
+    e.preventDefault();
+    const entrada = normaliza(q);
+
+    // intenta “matchear” contra las categorías conocidas
+    const match = CATS.find(c => normaliza(c) === entrada)
+      // aceptamos abreviaturas comunes
+      || (entrada.includes('juego') ? 'Juegos de mesa' : null)
+      || (entrada.includes('consol') ? 'Consolas' : null)
+      || (entrada === 'pc' || entrada === 'pcs' ? 'PCs' : null)
+      || (entrada.includes('ropa') ? 'Ropa' : null)
+      || (entrada.includes('acces') ? 'Accesorios' : null)
+      || (entrada.includes('todo') ? 'Todos' : null);
+
+    // si hay match vamos a /categorias con la query ?cat=
+    if (match){
+      navigate(`/categorias?cat=${encodeURIComponent(match)}`);
+      setQ('');
+    }else{
+      // si no, te llevo igual a categorías (filtras ahí)
+      navigate(`/categorias`);
+    }
+  }
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark">
       <div className="container">
@@ -13,10 +46,16 @@ export default function Navbar(){
         </button>
 
         <div className="collapse navbar-collapse" id="navMain">
-          {/* Buscador (center-left) */}
-          <form className="d-flex ms-lg-3 my-2 my-lg-0" role="search" style={{maxWidth: 380}}>
-            <input className="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar"/>
-            <button className="btn btn-primary" type="button">Buscar</button>
+          {/* Buscador */}
+          <form className="d-flex ms-lg-3 my-2 my-lg-0" role="search" style={{maxWidth: 380}} onSubmit={onSearch}>
+            <input
+              className="form-control me-2"
+              type="search"
+              placeholder='Buscar: "Juegos de mesa", "Consolas", "PCs"...'
+              value={q}
+              onChange={e=>setQ(e.target.value)}
+            />
+            <button className="btn btn-primary" type="submit">Buscar</button>
           </form>
 
           {/* Links centro */}
@@ -30,13 +69,11 @@ export default function Navbar(){
                 Categorías
               </NavLink>
               <ul className="dropdown-menu">
-                <li><Link className="dropdown-item" to="/categorias">Todos</Link></li>
-                <li><hr className="dropdown-divider"/></li>
-                <li><Link className="dropdown-item" to="/categorias">Juegos de mesa</Link></li>
-                <li><Link className="dropdown-item" to="/categorias">Accesorios</Link></li>
-                <li><Link className="dropdown-item" to="/categorias">Consolas</Link></li>
-                <li><Link className="dropdown-item" to="/categorias">PCs</Link></li>
-                <li><Link className="dropdown-item" to="/categorias">Ropa</Link></li>
+                {CATS.map(c=>(
+                  <li key={c}>
+                    <Link className="dropdown-item" to={`/categorias?cat=${encodeURIComponent(c)}`}>{c}</Link>
+                  </li>
+                ))}
               </ul>
             </li>
 
