@@ -1,4 +1,3 @@
-
 const baseProducts = [
   {
     id: 1,
@@ -21,7 +20,7 @@ const baseProducts = [
     name: 'Auriculares Gamer Razer Kraken',
     price: 59990,
     category: 'Accesorios',
-    image: 'img/Producto_img/Auri.png',
+    image: 'img/Producto_img/Auri.png',  
     offer: true    
   },
   {
@@ -78,9 +77,10 @@ const baseProducts = [
     price: 19990,
     category: 'Ropa',
     image: 'img/Producto_img/Polera.png',
-    offer: true    
+    offer: true     
   }
 ];
+
 
 const EXTRAS_BY_ID = {
   1:  { description: 'Clásico de estrategia y comercio para 3–4 jugadores; partidas de 60–90 min con tablero modular y alta rejugabilidad.', offerText: '15% de descuento (ahora $33.990)' },
@@ -111,15 +111,46 @@ export function listCategories() {
 }
 
 
-let cart = [];
-export function getCart() { return cart; }
-export function addToCart(id) {
-  const prod = products.find(p => p.id === id);
-  if (prod) cart.push(prod);
-  return cart;
+const CART_KEY = 'lvlup_cart'
+
+function loadCart() {
+  try {
+    const raw = localStorage.getItem(CART_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch { return [] }
 }
-export function removeFromCart(id) { cart = cart.filter(p => p.id !== id); return cart; }
-export function clearCart() { cart = []; return cart; }
+function saveCart(list) {
+  localStorage.setItem(CART_KEY, JSON.stringify(list))
+}
+
+
+export function getCart() {
+  const ids = loadCart()
+  
+  const prods = []
+  for (const id of ids) {
+    const p = listProducts().find(x => x.id === id)
+    if (p) prods.push(p)
+  }
+  return prods
+}
+export function addToCart(id) {
+  const ids = loadCart()
+  ids.push(id)
+  saveCart(ids)
+  return getCart()
+}
+export function removeFromCart(id) {
+  const ids = loadCart()
+  const i = ids.indexOf(id)
+  if (i !== -1) ids.splice(i, 1)
+  saveCart(ids)
+  return getCart()
+}
+export function clearCart() {
+  saveCart([])
+  return []
+}
 
 
 export function createProduct(newProduct) {
@@ -143,6 +174,9 @@ export function deleteProduct(id) {
 export function getUserProfile() { return { name: 'Invitado', email: '' }; }
 export function saveOrder(order) { console.log('Pedido guardado:', order); return true; }
 
+
 export { products as default, products };
+
+
 
 
