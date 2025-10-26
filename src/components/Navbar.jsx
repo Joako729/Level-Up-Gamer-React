@@ -1,13 +1,43 @@
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
- export default function Navbar() {
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+
+const CATS = ['Todos','Juegos de mesa','Accesorios','Consolas','PCs','Ropa'];
+
+export default function Navbar(){
+  const navigate = useNavigate();
+  const [q, setQ] = React.useState('');
+
+  function normaliza(s){
+    return (s || '').toString().trim().toLowerCase();
+  }
+
+  function onSearch(e){
+    e.preventDefault();
+    const entrada = normaliza(q);
+
+    // intenta “matchear” contra las categorías conocidas
+    const match = CATS.find(c => normaliza(c) === entrada)
+      // aceptamos abreviaturas / palabras clave
+      || (entrada.includes('juego') ? 'Juegos de mesa' : null)
+      || (entrada.includes('consol') ? 'Consolas' : null)
+      || (entrada === 'pc' || entrada === 'pcs' ? 'PCs' : null)
+      || (entrada.includes('ropa') ? 'Ropa' : null)
+      || (entrada.includes('acces') ? 'Accesorios' : null)
+      || (entrada.includes('todo') ? 'Todos' : null);
+
+    if (match){
+      navigate(`/categorias?cat=${encodeURIComponent(match)}`);
+      setQ('');
+    } else {
+      navigate(`/categorias`);
+    }
+  }
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark">
       <div className="container">
         {/* Brand */}
-        <Link className="navbar-brand fw-bold" to="/">
-          Level-Up Gamer
-        </Link>
+        <Link className="navbar-brand fw-bold" to="/">Level-Up Gamer</Link>
 
         <button
           className="navbar-toggler"
@@ -22,28 +52,27 @@ import { Link, NavLink } from 'react-router-dom';
         </button>
 
         <div className="collapse navbar-collapse" id="navMain">
-          {/* Buscador */}
+          {/* Buscador (con navegación por categorías) */}
           <form
             className="d-flex ms-lg-3 my-2 my-lg-0"
             role="search"
             style={{ maxWidth: 380 }}
+            onSubmit={onSearch}
           >
             <input
               className="form-control me-2"
               type="search"
               placeholder='Buscar: "Juegos de mesa", "Consolas", "PCs"...'
+              value={q}
+              onChange={(e)=>setQ(e.target.value)}
             />
-            <button className="btn btn-primary" type="button">
-              Buscar
-            </button>
+            <button className="btn btn-primary" type="submit">Buscar</button>
           </form>
 
           {/* Links centro */}
           <ul className="navbar-nav ms-lg-3 me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <NavLink className="nav-link" to="/">
-                Home
-              </NavLink>
+              <NavLink className="nav-link" to="/">Home</NavLink>
             </li>
 
             <li className="nav-item dropdown">
@@ -57,61 +86,30 @@ import { Link, NavLink } from 'react-router-dom';
                 Categorías
               </NavLink>
               <ul className="dropdown-menu">
-                <li>
-                  <Link className="dropdown-item" to="/categorias">
-                    Todos
-                  </Link>
-                </li>
-                <li>
-                  <hr className="dropdown-divider" />
-                </li>
-                <li>
-                  <Link className="dropdown-item" to="/categorias">
-                    Juegos de mesa
-                  </Link>
-                </li>
-                <li>
-                  <Link className="dropdown-item" to="/categorias">
-                    Accesorios
-                  </Link>
-                </li>
-                <li>
-                  <Link className="dropdown-item" to="/categorias">
-                    Consolas
-                  </Link>
-                </li>
-                <li>
-                  <Link className="dropdown-item" to="/categorias">
-                    PCs
-                  </Link>
-                </li>
-                <li>
-                  <Link className="dropdown-item" to="/categorias">
-                    Ropa
-                  </Link>
-                </li>
+                {CATS.map(c => (
+                  <li key={c}>
+                    <Link className="dropdown-item" to={`/categorias?cat=${encodeURIComponent(c)}`}>
+                      {c}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </li>
 
             <li className="nav-item">
-              <NavLink className="nav-link" to="/ofertas">
-                Ofertas
-              </NavLink>
+              <NavLink className="nav-link" to="/ofertas">Ofertas</NavLink>
             </li>
           </ul>
 
           {/* Botones derecha */}
           <div className="d-flex gap-2">
-            <Link to="/carrito" className="btn btn-success fw-bold">
-              🛒 Carrito
-            </Link>
-            <Link to="/admin" className="btn btn-outline-light">
-              Admin
-            </Link>
+            <Link to="/carrito" className="btn btn-success fw-bold">🛒 Carrito</Link>
+            <Link to="/admin" className="btn btn-outline-light">Admin</Link>
 
             {/* Botón de inicio de sesión (icono de usuario) */}
-            <Link to="/login" className="btn btn-outline-light">
-              <i className="fas fa-user"></i>
+            <Link to="/login" className="btn btn-outline-light" aria-label="Iniciar sesión">
+              {/* Usa Font Awesome si lo cargaste en public/index.html; si no, cambia por 👤 */}
+              <i className="fas fa-user" aria-hidden="true"></i>
             </Link>
           </div>
         </div>
