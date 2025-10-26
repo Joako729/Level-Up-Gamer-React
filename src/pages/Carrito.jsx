@@ -1,3 +1,4 @@
+// src/pages/Carrito.jsx
 import React, { useEffect, useMemo, useState } from 'react'
 import { getCart, addToCart, removeFromCart, clearCart } from '../data/data'
 
@@ -16,13 +17,16 @@ function groupCart(list) {
 
 export default function Carrito() {
   const [items, setItems] = useState(() => getCart())
+  const [showCheckout, setShowCheckout] = useState(false)  // Controla la visualización del pago
 
+  // Recalcula grupos y total cuando cambie el carrito
   const groups = useMemo(() => groupCart(items), [items])
   const total = useMemo(
     () => groups.reduce((s, g) => s + g.product.price * g.qty, 0),
     [groups]
   )
 
+  // Handlers
   const handleAdd = (id) => {
     addToCart(id)
     setItems(getCart())
@@ -36,6 +40,11 @@ export default function Carrito() {
     setItems(getCart())
   }
 
+  const handleCheckout = () => {
+    setShowCheckout(true)  // Muestra el formulario de pago
+  }
+
+  // Carga inicial (por si tu data.js cambia el estado por fuera)
   useEffect(() => {
     setItems(getCart())
   }, [])
@@ -58,7 +67,8 @@ export default function Carrito() {
         </button>
       </div>
 
-      <div className="table-responsive">
+      {/* Aquí cambiamos el fondo de la tabla a negro */}
+      <div className="table-responsive" style={{ backgroundColor: 'black', color: 'white', borderRadius: '10px', padding: '20px' }}>
         <table className="table align-middle">
           <thead>
             <tr>
@@ -103,7 +113,49 @@ export default function Carrito() {
           </tfoot>
         </table>
       </div>
+
+      {/* Mostrar formulario de pago si el carrito no está vacío y se ha hecho clic en 'Pagar' */}
+      {!showCheckout ? (
+        <div className="d-flex justify-content-end">
+          <button className="btn btn-success" onClick={handleCheckout}>
+            Pagar
+          </button>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <h3>Formulario de Pago</h3>
+          <form>
+            <div className="mb-3">
+              <label className="form-label">Nombre Completo</label>
+              <input type="text" className="form-control" required />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Dirección</label>
+              <input type="text" className="form-control" required />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Método de Pago</label>
+              <select className="form-select" required>
+                <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                <option value="transferencia">Transferencia Bancaria</option>
+              </select>
+            </div>
+            <button type="submit" className="btn btn-primary">
+              Confirmar Pago
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
 
