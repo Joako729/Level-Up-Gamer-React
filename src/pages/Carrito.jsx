@@ -1,90 +1,125 @@
 // src/pages/Carrito.jsx
-import React, { useEffect, useMemo, useState } from 'react'
-import { getCart, addToCart, removeFromCart, clearCart } from '../data/data'
+import React, { useEffect, useMemo, useState } from 'react';
 
-const formatCLP = (v) =>
-  new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(v)
+/* === utilidades de carrito dentro del archivo (sin archivos nuevos) === */
+const STORAGE_KEY = 'cart_v1';
 
-function groupCart(list) {
-  const map = new Map()
-  for (const p of list) {
-    const k = p.id
-    if (!map.has(k)) map.set(k, { product: p, qty: 0 })
-    map.get(k).qty += 1
+function readCart() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
   }
-  return Array.from(map.values())
 }
+function writeCart(list) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
+  window.dispatchEvent(new Event('cart:change'));
+}
+function getCart() {
+  return readCart();
+}
+function addToCart(product) {
+  if (!product?.id) return;
+  const cart = readCart();
+  cart.push({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    category: product.category,
+  });
+  writeCart(cart);
+}
+function removeFromCart(id) {
+  const cart = readCart();
+  const idx = cart.findIndex((p) => p.id === id);
+  if (idx >= 0) {
+    cart.splice(idx, 1);
+    writeCart(cart);
+  }
+}
+function removeAllFromCart(id) {
+  const next = readCart().filter((p) => p.id !== id);
+  writeCart(next);
+}
+function clearCart() {
+  writeCart([]);
+}
+function formatCLP(v) {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0
+  }).format(Number(v) || 0);
+}
+function groupCart(list) {
+  const map = new Map();
+  for (const p of list) {
+    if (!map.has(p.id)) map.set(p.id, { product: p, qty: 0 });
+    map.get(p.id).qty += 1;
+  }
+  return Array.from(map.values());
+}
+/* === fin utilidades === */
 
 export default function Carrito() {
-  const [items, setItems] = useState(() => getCart())
-  const [showCheckout, setShowCheckout] = useState(false)  // Controla la visualización del pago
+  const [items, setItems] = useState(() => getCart());
+  const rows = useMemo(() => groupCart(items), [items]);
+  const total = useMemo(() => rows.reduce((s, r) => s + (Number(r.product.price) || 0) * r.qty, 0), [rows]);
 
-  // Recalcula grupos y total cuando cambie el carrito
-  const groups = useMemo(() => groupCart(items), [items])
-  const total = useMemo(
-    () => groups.reduce((s, g) => s + g.product.price * g.qty, 0),
-    [groups]
-  )
-
-  // Handlers
-  const handleAdd = (id) => {
-    addToCart(id)
-    setItems(getCart())
-  }
-  const handleRemove = (id) => {
-    removeFromCart(id)
-    setItems(getCart())
-  }
-  const handleClear = () => {
-    clearCart()
-    setItems(getCart())
-  }
-
-  const handleCheckout = () => {
-    setShowCheckout(true)  // Muestra el formulario de pago
-  }
-
-  // Carga inicial (por si tu data.js cambia el estado por fuera)
+  // Escucha cambios del carrito (cuando agregas desde Home/ProductCard)
   useEffect(() => {
-    setItems(getCart())
-  }, [])
+    const refresh = () => setItems(getCart());
+    window.addEventListener('cart:change', refresh);
+    window.addEventListener('storage', refresh);
+    refresh();
+    return () => {
+      window.removeEventListener('cart:change', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
 
-  if (!groups.length) {
+  if (!rows.length) {
     return (
       <div className="container py-4">
         <h2 className="mb-3">Carrito</h2>
         <p className="text-muted">Tu carrito está vacío.</p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container py-4">
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h2 className="mb-0">Carrito</h2>
-        <button className="btn btn-outline-danger btn-sm" onClick={handleClear}>
+        <button className="btn btn-outline-danger btn-sm" onClick={() => { clearCart(); setItems(getCart()); }}>
           Vaciar carrito
         </button>
       </div>
 
-      {/* Aquí cambiamos el fondo de la tabla a negro */}
-      <div className="table-responsive" style={{ backgroundColor: 'black', color: 'white', borderRadius: '10px', padding: '20px' }}>
-        <table className="table align-middle">
+      {/* tabla en negro como pediste */}
+      <div className="table-responsive" style={{ backgroundColor: 'black', color: 'white', borderRadius: '10px', padding: '16px' }}>
+        <table className="table align-middle mb-0">
           <thead>
             <tr>
               <th style={{ width: 64 }}></th>
               <th>Producto</th>
-              <th className="text-center" style={{ width: 140 }}>Cantidad</th>
+              <th className="text-center" style={{ width: 160 }}>Cantidad</th>
               <th className="text-end" style={{ width: 140 }}>Precio</th>
               <th className="text-end" style={{ width: 160 }}>Subtotal</th>
             </tr>
           </thead>
           <tbody>
-            {groups.map(({ product, qty }) => (
+            {rows.map(({ product, qty }) => (
               <tr key={product.id}>
                 <td>
                   <img
-                    src={product.image.startsWith('http') ? product.image : `/${product.image.replace(/^\/+/, '')}`}
+                    src={
+                      product.image?.startsWith('http')
+                        ? product.image
+                        : `/${String(product.image || '').replace(/^\/+/, '')}`
+                    }
                     alt={product.name}
                     style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 8 }}
                   />
@@ -95,13 +130,31 @@ export default function Carrito() {
                 </td>
                 <td className="text-center">
                   <div className="btn-group" role="group" aria-label="Cambiar cantidad">
-                    <button className="btn btn-outline-secondary btn-sm" onClick={() => handleRemove(product.id)}>–</button>
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => { removeFromCart(product.id); setItems(getCart()); }}
+                    >
+                      –
+                    </button>
                     <span className="btn btn-light btn-sm disabled">{qty}</span>
-                    <button className="btn btn-outline-secondary btn-sm" onClick={() => handleAdd(product.id)}>+</button>
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => { addToCart(product); setItems(getCart()); }}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div>
+                    <button
+                      className="btn btn-link text-danger btn-sm mt-1"
+                      onClick={() => { removeAllFromCart(product.id); setItems(getCart()); }}
+                    >
+                      Quitar todo
+                    </button>
                   </div>
                 </td>
                 <td className="text-end">{formatCLP(product.price)}</td>
-                <td className="text-end">{formatCLP(product.price * qty)}</td>
+                <td className="text-end">{formatCLP((Number(product.price) || 0) * qty)}</td>
               </tr>
             ))}
           </tbody>
@@ -113,44 +166,9 @@ export default function Carrito() {
           </tfoot>
         </table>
       </div>
-
-      {/* Mostrar formulario de pago si el carrito no está vacío y se ha hecho clic en 'Pagar' */}
-      {!showCheckout ? (
-        <div className="d-flex justify-content-end">
-          <button className="btn btn-success" onClick={handleCheckout}>
-            Pagar
-          </button>
-        </div>
-      ) : (
-        <div className="mt-4">
-          <h3>Formulario de Pago</h3>
-          <form>
-            <div className="mb-3">
-              <label className="form-label">Nombre Completo</label>
-              <input type="text" className="form-control" required />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Dirección</label>
-              <input type="text" className="form-control" required />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Método de Pago</label>
-              <select className="form-select" required>
-                <option value="tarjeta">Tarjeta de Crédito/Débito</option>
-                <option value="transferencia">Transferencia Bancaria</option>
-              </select>
-            </div>
-            <button type="submit" className="btn btn-primary">
-              Confirmar Pago
-            </button>
-          </form>
-        </div>
-      )}
     </div>
-  )
+  );
 }
-
-
 
 
 
