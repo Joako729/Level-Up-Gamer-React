@@ -20,12 +20,16 @@ function writeCart(list) {
 function addToCart(product) {
   if (!product?.id) return;
   const cart = readCart();
+  // Guardamos también estos campos para que el carrito pueda calcular descuentos
   cart.push({
     id: product.id,
     name: product.name,
     price: product.price,
     image: product.image,
     category: product.category,
+    offer: !!product.offer,
+    offerLabel: product.offerLabel || null,
+    description: product.description || null,
   });
   writeCart(cart);
 }
@@ -47,12 +51,28 @@ export default function ProductCard({ product }) {
       ? (product.image.startsWith('http') ? product.image : `/${product.image.replace(/^\/+/, '')}`)
       : '';
 
+  // Oferta visual (-15% si viene marcado en data.js)
+  const isOffer = !!product.offer;           // Tus 4 ofertas ya están marcadas en data.js (1,3,7,10)
+  const DISCOUNT = 0.15;
+  const basePrice = Number(product.price) || 0;
+  const discountedPrice = isOffer ? Math.round(basePrice * (1 - DISCOUNT)) : null;
+  const offerLabel = product.offerLabel || `-${Math.round(DISCOUNT * 100)}%`;
+  const saving = isOffer ? (basePrice - discountedPrice) : 0;
+
   return (
     <div className="card h-100 p-2">
       <div className="position-relative">
-        {product.offer && (
-          <span className="badge-oferta badge rounded-pill">
-            {product.offerLabel || 'Oferta'}
+        {isOffer && (
+          <span
+            className="badge rounded-pill"
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: 10,
+              backgroundColor: '#dc3545'
+            }}
+          >
+            {offerLabel}
           </span>
         )}
         <img
@@ -69,7 +89,33 @@ export default function ProductCard({ product }) {
           {product.category && <span className="badge bg-secondary">{product.category}</span>}
         </div>
 
-        <div className="precio mb-2">{formatCLP(product.price)}</div>
+        {/* ✅ Muestra la descripción si existe en data.js */}
+        {product.description && (
+          <p className="text-muted small mb-2" style={{ minHeight: 40 }}>
+            {product.description}
+          </p>
+        )}
+
+        {/* Precio (si hay oferta, muestra original tachado + rebajado + ahorro) */}
+        <div className="mb-2">
+          {isOffer ? (
+            <>
+              <div className="text-muted" style={{ textDecoration: 'line-through' }}>
+                {formatCLP(basePrice)}
+              </div>
+              <div className="fw-bold">
+                {formatCLP(discountedPrice)}
+              </div>
+              <div className="small text-success">
+                Ahorras {formatCLP(saving)}
+              </div>
+            </>
+          ) : (
+            <div className="fw-bold">
+              {formatCLP(basePrice)}
+            </div>
+          )}
+        </div>
 
         <button
           className="btn btn-primary mt-auto"
@@ -81,6 +127,11 @@ export default function ProductCard({ product }) {
     </div>
   );
 }
+
+
+
+
+
 
 
 
