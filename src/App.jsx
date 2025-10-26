@@ -1,5 +1,5 @@
 // App.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -21,7 +21,42 @@ export default function App() {
     try { return sessionStorage.getItem('isAdminAuth') === '1'; } catch { return false; }
   });
 
-  // Cambia estas credenciales si quieres
+  // 🔔 NUEVO: mensaje global para login/registro correcto
+  const [authMsg, setAuthMsg] = useState('');
+  const [authMsgType] = useState('success'); // solo mostramos success
+  const [wasLogged, setWasLogged] = useState(() => {
+    try { return localStorage.getItem('user_logged') === '1'; } catch { return false; }
+  });
+
+  // Escucha cambios en localStorage.user_logged para mostrar mensajes
+  useEffect(() => {
+    const handler = () => {
+      let now = false;
+      try { now = localStorage.getItem('user_logged') === '1'; } catch {}
+
+      // transición de no-logueado -> logueado
+      if (!wasLogged && now) {
+        const path = (window.location.pathname || '').toLowerCase();
+        if (path.includes('/registro')) {
+          setAuthMsg('Registrado correctamente.');
+        } else if (path.includes('/login')) {
+          setAuthMsg('Inicio de sesión correctamente.');
+        } else {
+          setAuthMsg('Inicio de sesión correctamente.');
+        }
+        // ocultar automáticamente después de 4s
+        setTimeout(() => setAuthMsg(''), 4000);
+      }
+      setWasLogged(now);
+    };
+
+    // Chequeo inicial + suscripción a cambios
+    handler();
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, [wasLogged]);
+
+  // Credenciales admin (puedes cambiarlas)
   const ADMIN_CREDENTIALS = { user: 'levelupadmin', pass: 'levelupadmin' };
 
   function AdminWrapper() {
@@ -45,7 +80,7 @@ export default function App() {
 
     if (isAdminAuthenticated) return <AdminPanel />;
 
-    // Formulario de acceso (no tiene position: fixed ni overlays)
+    // Formulario de acceso
     return (
       <div className="container py-4">
         <h2 className="mb-3">Acceso administrador</h2>
@@ -93,6 +128,22 @@ export default function App() {
   return (
     <div className="d-flex flex-column min-vh-100">
       <Navbar />
+
+      {/* 🔔 Alerta global de login/registro correcto */}
+      {authMsg && (
+        <div className="container pt-3">
+          <div className="alert alert-success alert-dismissible fade show" role="alert">
+            {authMsg}
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Close"
+              onClick={() => setAuthMsg('')}
+            />
+          </div>
+        </div>
+      )}
+
       <main className="flex-grow-1 container py-3">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -112,6 +163,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
