@@ -82,45 +82,60 @@ export default function App() {
 
     // Formulario de acceso
     return (
-      <div className="container py-4">
-        <h2 className="mb-3">Acceso administrador</h2>
-        <form onSubmit={handleSubmit} style={{ maxWidth: 420 }}>
-          <div className="mb-3">
-            <label className="form-label">Nombre de usuario</label>
-            <input
-              className="form-control"
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
-              placeholder="usuario"
-              autoFocus
-            />
+      <div className="container py-5">
+        <div className="row justify-content-center">
+          <div className="col-md-6 col-lg-4">
+            <div className="card shadow-sm border-0 rounded-3">
+              <div className="card-body p-4">
+                <h3 className="text-center mb-4">Acceso administrador</h3>
+
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label">Nombre de usuario</label>
+                    <input
+                      className="form-control"
+                      value={user}
+                      onChange={(e) => setUser(e.target.value)}
+                      placeholder="usuario"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">Contraseña</label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      value={pass}
+                      onChange={(e) => setPass(e.target.value)}
+                      placeholder="contraseña"
+                    />
+                  </div>
+
+                  {error && <div className="alert alert-danger">{error}</div>}
+
+                  <div className="d-flex gap-2">
+                    <button type="submit" className="btn btn-primary w-100">
+                      Ingresar
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() =>
+                        alert(
+                          `Puedes ingresar con:\nusuario: ${ADMIN_CREDENTIALS.user}\ncontraseña: ${ADMIN_CREDENTIALS.pass}\n\nO cualquier par usuario=contraseña.`
+                        )
+                      }
+                    >
+                      Ayuda
+                    </button>
+                  </div>
+                </form>
+
+              </div>
+            </div>
           </div>
-          <div className="mb-3">
-            <label className="form-label">Contraseña</label>
-            <input
-              type="password"
-              className="form-control"
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
-              placeholder="contraseña"
-            />
-          </div>
-          {error && <div className="alert alert-danger">{error}</div>}
-          <div className="d-flex gap-2">
-            <button type="submit" className="btn btn-primary">Ingresar</button>
-            <button
-              type="button"
-              className="btn btn-outline-secondary"
-              onClick={() =>
-                alert(
-                  `Puedes ingresar con:\nusuario: ${ADMIN_CREDENTIALS.user}\ncontraseña: ${ADMIN_CREDENTIALS.pass}\n\nO cualquier par usuario=contraseña.`
-                )
-              }
-            >
-              Ayuda
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     );
   }
