@@ -2,25 +2,104 @@ import React from 'react';
 import { listCategories } from '../data/data';
 import { Link } from 'react-router-dom';
 
-export default function Home(){
-
-  const categorias = ['Juegos de mesa','Accesorios','Consolas','PCs','Ropa']
-    .filter(c => listCategories().includes(c))
-    .slice(0, 3); // mostramos 3 grandes como en el anexo
+export default function Home() {
+  const categorias = ['Juegos de mesa', 'Accesorios', 'Consolas', 'PCs', 'Ropa']
+    .filter((c) => listCategories().includes(c))
+    .slice(0, 3); // 3 tarjetas grandes como en el anexo
 
   return (
     <div className="container py-3">
+      {/* HERO / CARRUSEL DE NOTICIAS */}
 
-      {/* HERO / BANNER 1200x300 (mock) */}
-      <section className="hero-mock d-flex flex-column align-items-center justify-content-center text-center mb-4">
-        <div className="display-4 fw-bold text-muted">1200 x 300</div>
-        <h5 className="mt-3 mb-1 text-secondary">Nuevos Lanzamientos</h5>
-        <p className="text-secondary small mb-3">Descubre los últimos juegos disponibles en nuestra tienda.</p>
-        {/* puntitos mock del carrusel */}
-        <div className="d-flex gap-2">
-          <span className="dot"></span>
-          <span className="dot"></span>
-          <span className="dot"></span>
+      {/* 🟩 CUADRO DE BIENVENIDA */}
+      <section className="welcome-card card shadow-sm border-0 mb-4">
+        <div className="card-body d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+          <div>
+            <h3 className="mb-1 fw-bold">¡Bienvenido a Level-Up Gamer!</h3>
+            <p className="mb-0 text-opacity">
+              Somos tu tienda gamer favorita. Encuentra consolas, accesorios, PCs y juegos de mesa 
+              con despacho rápido. ¡Arma tu setup y sube de nivel!
+            </p>
+          </div>
+          <div className="ms-lg-3">
+            <Link to="/ofertas" className="btn btn-primary">Ofertas</Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-4">
+        <div
+          id="carouselExampleAutoplaying"
+          className="carousel slide"
+        >
+          <div className="carousel-inner">
+            {/* Noticia 1 */}
+            <div className="carousel-item active">
+              <img
+                src="/Img/Producto_Img/noticia1.png" // Imagen noticia 1
+                className="d-block w-100"
+                alt="Noticia 1"
+                style={{ height: '400px', objectFit: 'cover' }} // Ajustamos tamaño
+              />
+              <div className="carousel-caption d-none d-md-block">
+                <h5 className="fw-bold">La revolución del Gaming en 2025</h5>
+                <p>
+                  El mundo del gaming está experimentando una revolución con nuevas
+                  tecnologías. ¡Prepárate para lo que viene!
+                </p>
+              </div>
+            </div>
+            {/* Noticia 2 */}
+            <div className="carousel-item">
+              <img
+                src="/Img/Producto_Img/noticia2.png" // Imagen noticia 2
+                className="d-block w-100"
+                alt="Noticia 2"
+                style={{ height: '400px', objectFit: 'cover' }} // Ajustamos tamaño
+              />
+              <div className="carousel-caption d-none d-md-block">
+                <h5 className="fw-bold">La consola PS6 será más potente que nunca</h5>
+                <p>
+                  Con nuevos avances en hardware, la PS6 promete ser la consola más
+                  poderosa de la historia del gaming.
+                </p>
+              </div>
+            </div>
+            {/* Noticia 3 */}
+            <div className="carousel-item">
+              <img
+                src="/Img/Producto_Img/noticia3.png" // Imagen noticia 3
+                className="d-block w-100"
+                alt="Noticia 3"
+                style={{ height: '400px', objectFit: 'cover' }} // Ajustamos tamaño
+              />
+              <div className="carousel-caption d-none d-md-block">
+                <h5 className="fw-bold">El futuro de la realidad virtual en los videojuegos</h5>
+                <p>
+                  Con avances en realidad virtual, los videojuegos se están
+                  acercando a una experiencia completamente inmersiva.
+                </p>
+              </div>
+            </div>
+          </div>
+          <button
+            className="carousel-control-prev"
+            type="button"
+            data-bs-target="#carouselExampleAutoplaying"
+            data-bs-slide="prev"
+          >
+            <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span className="visually-hidden">Previous</span>
+          </button>
+          <button
+            className="carousel-control-next"
+            type="button"
+            data-bs-target="#carouselExampleAutoplaying"
+            data-bs-slide="next"
+          >
+            <span className="carousel-control-next-icon" aria-hidden="true"></span>
+            <span className="visually-hidden">Next</span>
+          </button>
         </div>
       </section>
 
@@ -31,9 +110,15 @@ export default function Home(){
           <div className="col-12 col-md-6 col-lg-4" key={c}>
             <div className="card cat-card shadow-sm h-100 d-flex">
               <div className="card-body d-flex flex-column align-items-center justify-content-center">
-                <div className="text-muted fs-3 fw-bold mb-2">400 x 200</div>
+                {/* Aquí añades la imagen representativa */}
+                <img
+                  src={`/Img/Producto_Img/${c.toLowerCase().replace(' ', '')}.png`} // usa nombre de categoría para la imagen
+                  alt={c}
+                  className="img-fluid mb-2"
+                  style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '10px' }}
+                />
                 <h5 className="card-title mb-2">{c}</h5>
-                <Link to="/categorias" className="btn btn-primary">Ver más</Link>
+                <Link to={`/categorias?cat=${encodeURIComponent(c)}`} className="btn btn-primary">Ver más</Link>
               </div>
             </div>
           </div>
