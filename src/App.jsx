@@ -8,6 +8,8 @@ import Categorias from './pages/Categorias';
 import Ofertas from './pages/Ofertas';
 import Carrito from './pages/Carrito';
 import Checkout from './pages/Checkout';
+import Login from './pages/Login';
+import Registro from './pages/Registro';
 import CompraExitosa from './pages/CompraExitosa';
 import CompraFallida from './pages/CompraFallida';
 import AdminPanel from './pages/AdminPanel';
@@ -100,6 +102,8 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/compra-exitosa" element={<CompraExitosa />} />
           <Route path="/compra-fallida" element={<CompraFallida />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
           {/* Ruta protegida de admin */}
           <Route path="/admin" element={<AdminWrapper />} />
         </Routes>
