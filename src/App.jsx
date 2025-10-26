@@ -10,6 +10,8 @@ import Checkout from './pages/Checkout';
 import CompraExitosa from './pages/CompraExitosa';
 import CompraFallida from './pages/CompraFallida';
 import AdminPanel from './pages/AdminPanel';
+import Login from './pages/Login';
+import Registro from './pages/Registro';
 import './App.css';
 
 export default function App(){
@@ -26,6 +28,8 @@ export default function App(){
           <Route path="/compra-exitosa" element={<CompraExitosa />} />
           <Route path="/compra-fallida" element={<CompraFallida />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
         </Routes>
       </main>
       <Footer />
