@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/Level-Up-Gamer-React/static/css/main.2c74dd4e.css",
+    "main.js": "/Level-Up-Gamer-React/static/js/main.725b9abf.js",
+    "index.html": "/Level-Up-Gamer-React/index.html",
+    "main.2c74dd4e.css.map": "/Level-Up-Gamer-React/static/css/main.2c74dd4e.css.map",
+    "main.725b9abf.js.map": "/Level-Up-Gamer-React/static/js/main.725b9abf.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2c74dd4e.css",
+    "static/js/main.725b9abf.js"
+  ]
+}
