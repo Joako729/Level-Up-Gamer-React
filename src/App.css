@@ -318,5 +318,8 @@ a:hover{ text-decoration: underline; }
 
 /* Estilos del botón de inicio de sesión */
 .navbar .btn-outline-light i {
-  margin-right: 0px; /* Espacio entre el ícono y el texto */
+  margin-right: 0px;
+  margin-top: 3px; /* Espacio entre el ícono y el texto */
 }
+
+
