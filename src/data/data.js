@@ -34,7 +34,7 @@ const baseProducts = [
   },
   {
     id: 4,
-    name: 'Mouse Gamer Logitech G502',
+    name: 'Razer Deathadder Viper Standard Edition 6400',
     price: 29990,
     category: 'Accesorios',
     image: 'img/Producto_img/MouseGamer.png',
@@ -44,7 +44,7 @@ const baseProducts = [
   },
   {
     id: 5,
-    name: 'Mousepad RGB SteelSeries',
+    name: 'Mouse Pad gamer Logitech G640 de tela',
     price: 12990,
     category: 'Accesorios',
     image: 'img/Producto_img/Mousepad.png',
@@ -74,7 +74,7 @@ const baseProducts = [
   },
   {
     id: 8,
-    name: 'Controlador DualSense PS5',
+    name: 'Joystick Microsoft Xbox Series',
     price: 54990,
     category: 'Consolas',
     image: 'img/Producto_img/Controlador.png',
