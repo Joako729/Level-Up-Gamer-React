@@ -1,6 +1,8 @@
+// src/pages/CompraFallida.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-export default function CompraFallida(){
+
+export default function CompraFallida(): JSX.Element {
   return (
     <div className="text-center py-5">
       <div className="display-6 mb-2 text-danger">Pago rechazado</div>

@@ -1,6 +1,8 @@
+// src/pages/CompraExitosa.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-export default function CompraExitosa(){
+
+export default function CompraExitosa(): JSX.Element {
   return (
     <div className="text-center py-5">
       <div className="display-6 mb-2 text-success">¡Compra exitosa!</div>

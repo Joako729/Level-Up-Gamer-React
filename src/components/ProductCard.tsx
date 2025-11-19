@@ -1,23 +1,37 @@
-// src/components/ProductCard.jsx
+// src/components/ProductCard.tsx
 import React from 'react';
+import { Product } from '../data/data'; // Importar la interfaz Product
+
+// Estructura del objeto de carrito que guarda este componente (debe ser coherente con el tipo Product)
+interface ProductCardCartItem {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  offer: boolean;
+  offerLabel: string | null;
+  description: string | null;
+}
 
 /* === utilidades de carrito dentro del componente (sin archivos nuevos) === */
 const STORAGE_KEY = 'cart_v1';
 
-function readCart() {
+function readCart(): ProductCardCartItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? (JSON.parse(raw) as ProductCardCartItem[]) : [];
   } catch {
     return [];
   }
 }
-function writeCart(list) {
+function writeCart(list: ProductCardCartItem[]): void {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
   // notificar a otras vistas (Carrito, Navbar, etc.)
   window.dispatchEvent(new Event('cart:change'));
 }
-function addToCart(product) {
+// La función espera un objeto Product, que es el que se muestra
+function addToCart(product: Product): void {
   if (!product?.id) return;
   const cart = readCart();
   // Guardamos también estos campos para que el carrito pueda calcular descuentos
@@ -34,7 +48,7 @@ function addToCart(product) {
   writeCart(cart);
 }
 
-function formatCLP(v) {
+function formatCLP(v: number | string | null | undefined): string {
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
@@ -43,21 +57,26 @@ function formatCLP(v) {
 }
 /* === fin utilidades === */
 
-export default function ProductCard({ product }) {
+interface ProductCardProps {
+  product: Product;
+}
+
+export default function ProductCard({ product }: ProductCardProps): JSX.Element | null {
   if (!product) return null;
 
-  const imgSrc =
+  const imgSrc: string =
     typeof product.image === 'string'
       ? (product.image.startsWith('http') ? product.image : `/${product.image.replace(/^\/+/, '')}`)
       : '';
 
   // Oferta visual (-15% si viene marcado en data.js)
-  const isOffer = !!product.offer;           // Tus 4 ofertas ya están marcadas en data.js (1,3,7,10)
-  const DISCOUNT = 0.15;
-  const basePrice = Number(product.price) || 0;
-  const discountedPrice = isOffer ? Math.round(basePrice * (1 - DISCOUNT)) : null;
-  const offerLabel = product.offerLabel || `-${Math.round(DISCOUNT * 100)}%`;
-  const saving = isOffer ? (basePrice - discountedPrice) : 0;
+  const isOffer: boolean = !!product.offer;
+  const DISCOUNT: number = 0.15;
+  const basePrice: number = Number(product.price) || 0;
+  // El precio descontado puede ser nulo o un número
+  const discountedPrice: number | null = isOffer ? Math.round(basePrice * (1 - DISCOUNT)) : null;
+  const offerLabel: string = product.offerLabel || `-${Math.round(DISCOUNT * 100)}%`;
+  const saving: number = isOffer ? (basePrice - (discountedPrice || 0)) : 0;
 
   return (
     <div className="card h-100 p-2">
@@ -98,7 +117,7 @@ export default function ProductCard({ product }) {
 
         {/* Precio (si hay oferta, muestra original tachado + rebajado + ahorro) */}
         <div className="mb-2">
-          {isOffer ? (
+          {isOffer && discountedPrice !== null ? (
             <>
               <div className="text-muted" style={{ textDecoration: 'line-through' }}>
                 {formatCLP(basePrice)}
@@ -127,11 +146,3 @@ export default function ProductCard({ product }) {
     </div>
   );
 }
-
-
-
-
-
-
-
-

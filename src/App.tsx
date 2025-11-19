@@ -1,4 +1,4 @@
-// App.jsx
+// App.tsx
 import { HashRouter as Router } from 'react-router-dom';
 
 import React, { useState, useEffect } from 'react';
@@ -17,23 +17,32 @@ import CompraFallida from './pages/CompraFallida';
 import AdminPanel from './pages/AdminPanel';
 import './App.css';
 
-export default function App() {
+// Define type for admin credentials
+interface AdminCredentials {
+  user: string;
+  pass: string;
+}
+
+export default function App(): JSX.Element {
   // Persistencia simple en sessionStorage para el login de admin
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     try { return sessionStorage.getItem('isAdminAuth') === '1'; } catch { return false; }
   });
 
   // 🔔 NUEVO: mensaje global para login/registro correcto
-  const [authMsg, setAuthMsg] = useState('');
-  const [authMsgType] = useState('success'); // solo mostramos success
-  const [wasLogged, setWasLogged] = useState(() => {
+  const [authMsg, setAuthMsg] = useState<string>('');
+  const [authMsgType] = useState<string>('success'); // solo mostramos success
+  const [wasLogged, setWasLogged] = useState<boolean>(() => {
     try { return localStorage.getItem('user_logged') === '1'; } catch { return false; }
   });
+
+  // Credenciales admin (puedes cambiarlas)
+  const ADMIN_CREDENTIALS: AdminCredentials = { user: 'levelupadmin', pass: 'levelupadmin' };
 
   // Escucha cambios en localStorage.user_logged para mostrar mensajes
   useEffect(() => {
     const handler = () => {
-      let now = false;
+      let now: boolean = false;
       try { now = localStorage.getItem('user_logged') === '1'; } catch {}
 
       // transición de no-logueado -> logueado
@@ -54,22 +63,20 @@ export default function App() {
 
     // Chequeo inicial + suscripción a cambios
     handler();
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
+    window.addEventListener('storage', handler as EventListener);
+    return () => window.removeEventListener('storage', handler as EventListener);
   }, [wasLogged]);
 
-  // Credenciales admin (puedes cambiarlas)
-  const ADMIN_CREDENTIALS = { user: 'levelupadmin', pass: 'levelupadmin' };
 
-  function AdminWrapper() {
-    const [user, setUser] = useState('');
-    const [pass, setPass] = useState('');
-    const [error, setError] = useState('');
+  function AdminWrapper(): JSX.Element {
+    const [user, setUser] = useState<string>('');
+    const [pass, setPass] = useState<string>('');
+    const [error, setError] = useState<string>('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const matchDefault = user === ADMIN_CREDENTIALS.user && pass === ADMIN_CREDENTIALS.pass;
-      const matchSame = user !== '' && user === pass; // “si son las mismas, puede ingresar”
+      const matchDefault: boolean = user === ADMIN_CREDENTIALS.user && pass === ADMIN_CREDENTIALS.pass;
+      const matchSame: boolean = user !== '' && user === pass; // “si son las mismas, puede ingresar”
 
       if (matchDefault || matchSame) {
         setIsAdminAuthenticated(true);
@@ -97,7 +104,7 @@ export default function App() {
                     <input
                       className="form-control"
                       value={user}
-                      onChange={(e) => setUser(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUser(e.target.value)}
                       placeholder="usuario"
                       autoFocus
                     />
@@ -109,7 +116,7 @@ export default function App() {
                       type="password"
                       className="form-control"
                       value={pass}
-                      onChange={(e) => setPass(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPass(e.target.value)}
                       placeholder="contraseña"
                     />
                   </div>
@@ -180,10 +187,3 @@ export default function App() {
     </div>
   );
 }
-
-
-
-
-
-
-

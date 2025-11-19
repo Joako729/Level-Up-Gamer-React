@@ -1,7 +1,25 @@
-// src/data/data.js
+// src/data/data.ts
+
+// Definición de la interfaz principal para un Producto
+export interface Product {
+  id: number;
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+  offer: boolean;
+  description: string;
+  offerLabel?: string | null;
+}
+
+// Definición de la interfaz para el perfil de usuario (helper)
+export interface UserProfile {
+  name: string;
+  email: string;
+}
 
 // ====== Catálogo con descripciones añadidas y 4 ofertas (1,3,7,10) ======
-const baseProducts = [
+const baseProducts: Product[] = [
   {
     id: 1,
     name: 'Catan',
@@ -105,82 +123,84 @@ const baseProducts = [
 ];
 
 // ====== Construcción del arreglo final de productos ======
-const products = baseProducts.slice(); // sin mutaciones posteriores
+const products: Product[] = baseProducts.slice(); // sin mutaciones posteriores
 
 // ====== API de lectura de productos ======
-export function listProducts() { return products; }
-export function listOffers() { return products.filter(p => p.offer === true); }
-export function listProductsByCategory(category) {
+export function listProducts(): Product[] { return products; }
+export function listOffers(): Product[] { return products.filter(p => p.offer === true); }
+export function listProductsByCategory(category: string | null | undefined): Product[] {
   if (!category || category === 'Todo') return products;
   return products.filter(p => (p.category || '').toLowerCase() === String(category).toLowerCase());
 }
-export function listCategories() {
-  const cats = Array.from(new Set(products.map(p => p.category))).filter(Boolean);
-  return ['Todo', ...cats];
+export function listCategories(): string[] {
+  const cats: (string | undefined)[] = Array.from(new Set(products.map(p => p.category))).filter(Boolean);
+  return ['Todo', ...(cats as string[])];
 }
 
 // ====== Carrito (por id) ======
 const CART_KEY = 'lvlup_cart';
 
-function loadCart() {
+function loadCart(): number[] {
   try {
     const raw = localStorage.getItem(CART_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? (JSON.parse(raw) as number[]) : [];
   } catch { return []; }
 }
-function saveCart(list) {
+function saveCart(list: number[]): void {
   localStorage.setItem(CART_KEY, JSON.stringify(list));
 }
 
-export function getCart() {
-  const ids = loadCart();
-  const prods = [];
+export function getCart(): Product[] {
+  const ids: number[] = loadCart();
+  const prods: Product[] = [];
   for (const id of ids) {
     const p = listProducts().find(x => x.id === id);
     if (p) prods.push(p);
   }
   return prods;
 }
-export function addToCart(id) {
-  const ids = loadCart();
+export function addToCart(id: number): Product[] {
+  const ids: number[] = loadCart();
   ids.push(id);
   saveCart(ids);
   return getCart();
 }
-export function removeFromCart(id) {
-  const ids = loadCart();
+export function removeFromCart(id: number): Product[] {
+  const ids: number[] = loadCart();
   const i = ids.indexOf(id);
   if (i !== -1) ids.splice(i, 1);
   saveCart(ids);
   return getCart();
 }
-export function clearCart() {
+export function clearCart(): Product[] {
   saveCart([]);
   return [];
 }
 
 // ====== CRUD productos (en memoria) ======
-export function createProduct(newProduct) {
+export function createProduct(newProduct: Omit<Product, 'id'>): Product {
   const nextId = (products.reduce((m, p) => Math.max(m, p.id), 0) || 0) + 1;
-  const product = { id: nextId, ...newProduct };
+  const product: Product = { id: nextId, ...newProduct };
   products.push(product);
   return product;
 }
-export function updateProduct(id, updated) {
+export function updateProduct(id: number, updated: Partial<Omit<Product, 'id'>>): Product | undefined {
   const i = products.findIndex(p => p.id === id);
-  if (i !== -1) products[i] = { ...products[i], ...updated, id };
+  if (i !== -1) products[i] = { ...products[i], ...updated, id } as Product;
   return products[i];
 }
-export function deleteProduct(id) {
+export function deleteProduct(id: number): boolean {
   const i = products.findIndex(p => p.id === id);
   if (i !== -1) products.splice(i, 1);
   return true;
 }
 
 // ====== Otros helpers ======
-export function getUserProfile() { return { name: 'Invitado', email: '' }; }
-export function saveOrder(order) { console.log('Pedido guardado:', order); return true; }
+export function getUserProfile(): UserProfile { return { name: 'Invitado', email: '' }; }
+export function saveOrder(order: any): boolean {
+    console.log('Pedido guardado:', order);
+    return true;
+}
 
 // ====== Exports ======
 export { products as default, products };
-

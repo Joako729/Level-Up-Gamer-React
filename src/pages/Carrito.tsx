@@ -1,28 +1,53 @@
-// src/pages/Carrito.jsx
+// src/pages/Carrito.tsx
 import React, { useEffect, useMemo, useState } from 'react';
+
+// Estructura del ítem guardado en el carrito (debe ser consistente con ProductCard)
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  offer: boolean;
+  offerLabel: string | null;
+  description: string | null;
+}
+
+// Estructura para el ítem agrupado en la tabla
+interface GroupedCartItem {
+  product: CartItem;
+  qty: number;
+}
+
+// Estructura para los totales
+interface CartTotals {
+  original: number;
+  discounted: number;
+  savings: number;
+}
 
 /* === utilidades carrito locales (usa el mismo STORAGE_KEY que ProductCard) === */
 const STORAGE_KEY = 'cart_v1';
 const DISCOUNT = 0.15; // % de descuento para productos en oferta
 
-function readCart() {
+function readCart(): CartItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? (JSON.parse(raw) as CartItem[]) : [];
   } catch { return []; }
 }
-function writeCart(list) {
+function writeCart(list: CartItem[]): void {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
   window.dispatchEvent(new Event('cart:change'));
 }
-function getCart() { return readCart(); }
-function addToCart(product) {
+function getCart(): CartItem[] { return readCart(); }
+function addToCart(product: CartItem): void {
   if (!product?.id) return;
   const cart = readCart();
   cart.push(product);
   writeCart(cart);
 }
-function removeFromCart(id) {
+function removeFromCart(id: number): void {
   const cart = readCart();
   const idx = cart.findIndex((p) => p.id === id);
   if (idx >= 0) {
@@ -30,13 +55,13 @@ function removeFromCart(id) {
     writeCart(cart);
   }
 }
-function removeAllFromCart(id) {
+function removeAllFromCart(id: number): void {
   const next = readCart().filter((p) => p.id !== id);
   writeCart(next);
 }
-function clearCart() { writeCart([]); }
+function clearCart(): void { writeCart([]); }
 
-function formatCLP(v) {
+function formatCLP(v: number | string): string {
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
@@ -44,48 +69,48 @@ function formatCLP(v) {
   }).format(Number(v) || 0);
 }
 
-function groupCart(list) {
-  const map = new Map();
+function groupCart(list: CartItem[]): GroupedCartItem[] {
+  const map = new Map<number, GroupedCartItem>();
   for (const p of list) {
     const k = p.id;
     if (!map.has(k)) map.set(k, { product: p, qty: 0 });
-    map.get(k).qty += 1;
+    map.get(k)!.qty += 1;
   }
   return Array.from(map.values());
 }
 
 // precio unitario a cobrar (aplica descuento si corresponde)
-function unitPrice(product) {
+function unitPrice(product: CartItem): number {
   const base = Number(product.price) || 0;
   return product.offer ? Math.round(base * (1 - DISCOUNT)) : base;
 }
-function unitSaving(product) {
+function unitSaving(product: CartItem): number {
   const base = Number(product.price) || 0;
   return product.offer ? (base - unitPrice(product)) : 0;
 }
 /* === fin utilidades === */
 
-export default function Carrito() {
-  const [items, setItems] = useState(() => getCart());
-  const [showPayForm, setShowPayForm] = useState(false);
-  const [payMethod, setPayMethod] = useState('');
-  const [payError, setPayError] = useState('');
-  const [purchaseStatus, setPurchaseStatus] = useState('idle'); // 'idle' | 'success' | 'failure'
-  const [purchaseMessage, setPurchaseMessage] = useState('');
-  const [isLogged, setIsLogged] = useState(() => {
+export default function Carrito(): JSX.Element {
+  const [items, setItems] = useState<CartItem[]>(() => getCart());
+  const [showPayForm, setShowPayForm] = useState<boolean>(false);
+  const [payMethod, setPayMethod] = useState<string>('');
+  const [payError, setPayError] = useState<string>('');
+  const [purchaseStatus, setPurchaseStatus] = useState<'idle' | 'success' | 'failure'>('idle'); // Estado con unión de tipos
+  const [purchaseMessage, setPurchaseMessage] = useState<string>('');
+  const [isLogged, setIsLogged] = useState<boolean>(() => {
     try { return localStorage.getItem('user_logged') === '1'; } catch { return false; }
   });
 
-  const rows = useMemo(() => groupCart(items), [items]);
+  const rows: GroupedCartItem[] = useMemo(() => groupCart(items), [items]);
 
-  const totals = useMemo(() => {
-    let original = 0;
-    let discounted = 0;
-    let savings = 0;
+  const totals: CartTotals = useMemo(() => {
+    let original: number = 0;
+    let discounted: number = 0;
+    let savings: number = 0;
     for (const { product, qty } of rows) {
-      const base = Number(product.price) || 0;
-      const unit = unitPrice(product);
-      const save = unitSaving(product);
+      const base: number = Number(product.price) || 0;
+      const unit: number = unitPrice(product);
+      const save: number = unitSaving(product);
       original += base * qty;
       discounted += unit * qty;
       savings += save * qty;
@@ -99,11 +124,12 @@ export default function Carrito() {
       refresh();
       try { setIsLogged(localStorage.getItem('user_logged') === '1'); } catch {}
     };
-    window.addEventListener('cart:change', refresh);
+    // Se añade un cast para que TypeScript acepte la función como EventListener
+    window.addEventListener('cart:change', refresh as EventListener);
     window.addEventListener('storage', onStorage);
     refresh();
     return () => {
-      window.removeEventListener('cart:change', refresh);
+      window.removeEventListener('cart:change', refresh as EventListener);
       window.removeEventListener('storage', onStorage);
     };
   }, []);
@@ -159,7 +185,7 @@ export default function Carrito() {
     setPayError('');
   };
 
-  const confirmDisabled = !isLogged || !payMethod;
+  const confirmDisabled: boolean = !isLogged || !payMethod;
 
   return (
     <div className="container py-4">
@@ -201,11 +227,11 @@ export default function Carrito() {
           </thead>
           <tbody>
             {rows.map(({ product, qty }) => {
-              const base = Number(product.price) || 0;
-              const unit = unitPrice(product);
-              const subBase = base * qty;
-              const subUnit = unit * qty;
-              const saved = (base - unit) * qty;
+              const base: number = Number(product.price) || 0;
+              const unit: number = unitPrice(product);
+              const subBase: number = base * qty;
+              const subUnit: number = unit * qty;
+              const saved: number = (base - unit) * qty;
 
               return (
                 <tr key={product.id}>
@@ -327,7 +353,7 @@ export default function Carrito() {
               {/* Método de pago */}
               <div className="col-12">
                 <label className="form-label">Método de pago</label>
-                <select className="form-select" value={payMethod} onChange={(e) => { setPayMethod(e.target.value); setPayError(''); }}>
+                <select className="form-select" value={payMethod} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setPayMethod(e.target.value); setPayError(''); }}>
                   <option value="">Selecciona…</option>
                   <option value="Tarjeta de Crédito/Débito">Tarjeta de Crédito/Débito</option>
                   <option value="Transferencia Bancaria">Transferencia Bancaria</option>

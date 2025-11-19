@@ -1,1 +1,42 @@
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+/* src/index.css */
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif; /* Usar la fuente de Google Fonts */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0c0c0c; /* Fondo oscuro */
+  color: #f8f9fa; /* Texto claro */
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Clases de utilidad */
+.text-info {
+  color: #00d1ff !important;
+}
+
+.bg-dark {
+  background-color: #1a1a1a !important;
+}
+
+.btn-primary {
+  background-color: #00d1ff;
+  border-color: #00d1ff;
+}
+
+.btn-primary:hover {
+  background-color: #00b0d3;
+  border-color: #00b0d3;
+}
+
+/* Efecto hover para tarjetas de categorías/productos */
+.hover-grow {
+  transition: transform 0.2s;
+}
+
+.hover-grow:hover {
+  transform: scale(1.03);
+}
