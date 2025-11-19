@@ -2,9 +2,9 @@
 import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { Product, listOffers } from '../data/data'; // Importar Product
+import { Product, listOffers } from '../data/data';
 
-// Listado de categorías principales para el carousel de categorías
+// Listado de categorías principales
 const mainCategoriesSource: { name: string; image: string }[] = [
   { name: 'Accesorios', image: 'Img/Producto_Img/accesorios.png' },
   { name: 'Consolas', image: 'Img/Producto_Img/consolas.png' },
@@ -12,18 +12,37 @@ const mainCategoriesSource: { name: string; image: string }[] = [
   { name: 'Juegos de Mesa', image: 'Img/Producto_Img/Catan.png' },
 ];
 
-// Listado de noticias (solo datos de ejemplo)
-const newsItems: { id: number; title: string; image: string; summary: string }[] = [
-  { id: 1, title: 'Lanzamiento PS6: Rumores y Especificaciones', image: 'Img/Producto_Img/noticia1.png', summary: 'Se filtran posibles detalles de la próxima consola de Sony, incluyendo el chip gráfico y el SSD mejorado.' },
-  { id: 2, title: 'Tendencias en periféricos RGB', image: 'Img/Producto_Img/noticia2.png', summary: 'Un vistazo a los teclados, mouses y audífonos que están dominando el mercado con la mejor iluminación personalizable.' },
-  { id: 3, title: 'E-Sports: Chile se prepara para el mundial', image: 'Img/Producto_Img/noticia3.png', summary: 'La selección chilena de LoL se clasifica para las finales globales en Asia, un hito histórico para la región.' },
+// 🔔 CAMBIO PRINCIPAL: Asignación de las nuevas imágenes a las noticias correspondientes
+const newsItems: { id: number; title: string; image: string; summary: string; link: string }[] = [
+  { 
+    id: 1, 
+    title: 'Tendencias en periféricos RGB', 
+    // Mantenemos esta imagen o ajusta si tienes una específica para periféricos
+    image: 'Img/Producto_Img/noticia1.png', 
+    summary: 'Un vistazo a los teclados, mouses y audífonos que están dominando el mercado con la mejor iluminación personalizable.',
+    link: 'https://mutant.cl/blogs/noticias/perifericos-gamer-2025-los-favoritos-de-los-equipos-de-esports'
+  },
+  { 
+    id: 2, 
+    title: 'E-Sports: Chile se prepara para el mundial', 
+    // 🔔 AQUÍ: Usamos la Image 1 que subiste (jugador de E-Sports)
+    image: 'Img/Producto_Img/fakerlol.png', // Asegúrate de que este nombre coincida con tu archivo guardado
+    summary: 'La selección chilena de LoL se clasifica para las finales globales en Asia, un hito histórico para la región.',
+    link: 'https://nexoplay.com/red-bull-solo-q-2024-chile-maig-representara-a-chile-en-el-mundial-de-lol/'
+  },
+  { 
+    id: 3, 
+    title: 'Lanzamiento PS6: Rumores y Especificaciones', 
+    // 🔔 AQUÍ: Usamos la Image 2 que subiste (consola PS6)
+    image: 'Img/Producto_Img/playstation6.png', // Asegúrate de que este nombre coincida con tu archivo guardado
+    summary: 'Se filtran posibles detalles de la próxima consola de Sony, incluyendo el chip gráfico y el SSD mejorado.',
+    link: 'https://vandal.elespanol.com/noticia/1350784969/entre-rumores-e-informaciones-de-ps6-sony-asegura-que-playstation-5-esta-a-mitad-de-su-ciclo/'
+  },
 ];
 
 export default function Home(): JSX.Element {
-  // Se eliminó featuredProducts ya que no se usa
   const offers: Product[] = useMemo(() => listOffers(), []);
 
-  // FILTRO: Eliminar "Juegos de Mesa" del acceso rápido
   const mainCategories: { name: string; image: string }[] = useMemo(() => 
     mainCategoriesSource.filter(cat => cat.name !== 'Juegos de Mesa'), 
     []
@@ -75,7 +94,14 @@ export default function Home(): JSX.Element {
                             <div className="container text-white p-5 bg-dark bg-opacity-75 rounded-bottom">
                                 <h5 className="display-6 fw-bold">{news.title}</h5>
                                 <p className="lead">{news.summary}</p>
-                                <button className="btn btn-warning">Leer Noticia Completa</button>
+                                <a 
+                                  href={news.link} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="btn btn-warning fw-bold"
+                                >
+                                  Leer Noticia Completa
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -94,7 +120,7 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* 3. Ofertas de la Semana (MOVIDO AQUÍ) */}
+      {/* 3. Ofertas de la Semana */}
       <section className="mb-5">
         <h2 className="text-center mb-4 text-light">⚡ Ofertas de la Semana</h2>
         <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
