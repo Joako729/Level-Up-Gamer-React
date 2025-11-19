@@ -1,111 +1,94 @@
 // src/pages/Categorias.tsx
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { Product, listProductsByCategory, listCategories } from '../data/data';
+import { listProducts, listCategories } from '../data/data';
 
 export default function Categorias(): JSX.Element {
-  const [searchParams] = useSearchParams();
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todo');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  
-  // Lista total de categorías (desde data.ts)
-  const categories: string[] = useMemo(() => listCategories(), []);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialCat = searchParams.get('cat') || 'Todo';
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCat);
 
-  // Usa un memo para obtener la lista de productos basada en la categoría seleccionada
-  const productsByCategory: Product[] = useMemo(() => {
-    return listProductsByCategory(selectedCategory);
-  }, [selectedCategory]);
+  // Obtener todos los productos y categorías
+  const allProducts = useMemo(() => listProducts(), []);
+  const categories = useMemo(() => listCategories(), []); // ['Todo', 'Accesorios', ...]
 
-  // Aplica el filtro de búsqueda al resultado por categoría
-  const filteredProducts: Product[] = useMemo(() => {
-    if (!searchTerm) {
-      return productsByCategory;
-    }
-    const lowerCaseSearch = searchTerm.toLowerCase();
-    return productsByCategory.filter(p => 
-      p.name.toLowerCase().includes(lowerCaseSearch) ||
-      p.description?.toLowerCase().includes(lowerCaseSearch) ||
-      p.category.toLowerCase().includes(lowerCaseSearch)
-    );
-  }, [productsByCategory, searchTerm]);
+  // Filtramos los productos según la selección
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === 'Todo') return allProducts;
+    return allProducts.filter((p) => p.category === selectedCategory);
+  }, [selectedCategory, allProducts]);
 
-  // Efecto para leer los parámetros de la URL al cargar
-  useEffect(() => {
-    const cat = searchParams.get('cat');
-    const q = searchParams.get('q');
-    
-    if (cat && categories.includes(cat)) {
-      setSelectedCategory(cat);
-    }
-    if (q) {
-      setSearchTerm(q);
-    }
-  }, [searchParams, categories]);
-  
-  // Función para manejar el cambio de categoría
-  const handleCategoryChange = (e: React.MouseEvent<HTMLButtonElement>, category: string) => {
-    e.preventDefault();
-    setSelectedCategory(category);
-    setSearchTerm(''); // Limpiar búsqueda al cambiar de categoría
+  // Helper para contar productos por categoría
+  const getCount = (cat: string) => {
+    if (cat === 'Todo') return allProducts.length;
+    return allProducts.filter((p) => p.category === cat).length;
   };
 
-  // Función para manejar el cambio de búsqueda (Tipado de evento de input)
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setSelectedCategory('Todo'); // Volver a "Todo" al buscar
+  const handleCategoryChange = (cat: string) => {
+    setSelectedCategory(cat);
+    setSearchParams({ cat: cat === 'Todo' ? '' : cat });
   };
 
   return (
     <div className="container py-4">
-      <h1 className="mb-4">Catálogo de Productos</h1>
-
-      <div className="row mb-4">
-        {/* Filtros de Categoría */}
-        <div className="col-md-3">
-          <h5 className="mb-2">Categorías</h5>
-          <div className="list-group">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                className={`list-group-item list-group-item-action ${selectedCategory === cat ? 'active' : ''}`}
-                onClick={(e) => handleCategoryChange(e, cat)}
-              >
-                {cat}
-              </button>
-            ))}
+      <div className="row">
+        {/* BARRA LATERAL (Filtros) */}
+        <div className="col-lg-3 mb-4">
+          <div className="card bg-dark border-secondary shadow-sm">
+            <div className="card-header bg-transparent border-secondary">
+              {/* TÍTULO BLANCO */}
+              <h4 className="mb-0 text-white">Categorías</h4>
+            </div>
+            <ul className="list-group list-group-flush">
+              {categories.map((cat) => {
+                const isActive = selectedCategory === cat;
+                return (
+                  <li key={cat} className="list-group-item bg-dark border-secondary p-0">
+                    <button
+                      onClick={() => handleCategoryChange(cat)}
+                      className={`btn w-100 text-start rounded-0 py-3 px-4 d-flex justify-content-between align-items-center ${
+                        isActive 
+                          ? 'btn-primary text-white fw-bold' 
+                          : 'btn-dark text-white-50 hover-white'
+                      }`}
+                      style={{ transition: 'all 0.2s' }}
+                    >
+                      <span>{cat}</span>
+                      {/* CONTADOR (ej: 10) */}
+                      <span className={`badge ${isActive ? 'bg-light text-primary' : 'bg-secondary text-white'}`}>
+                        {getCount(cat)}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
 
-        {/* Listado de Productos */}
-        <div className="col-md-9">
-          {/* Barra de Búsqueda */}
-          <div className="mb-4">
-            <input
-              type="text"
-              className="form-control"
-              placeholder={`Buscar en ${selectedCategory}...`}
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
+        {/* CONTENIDO PRINCIPAL */}
+        <div className="col-lg-9">
+          <div className="d-flex justify-content-between align-items-center mb-4 p-3 rounded bg-dark border border-secondary shadow-sm">
+            {/* TÍTULO CATÁLOGO BLANCO */}
+            <h2 className="mb-0 text-white fs-3">Catálogo de Productos</h2>
+            <span className="text-muted">
+              Mostrando {filteredProducts.length} resultados
+            </span>
           </div>
 
-          <h2 className="mb-3">{selectedCategory} ({filteredProducts.length})</h2>
-
-          {filteredProducts.length === 0 ? (
-            <div className="alert alert-warning">
-              No se encontraron productos en esta categoría o con el término de búsqueda.
-            </div>
-          ) : (
-            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="col">
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+            {filteredProducts.map((product) => (
+              <div key={product.id} className="col">
+                <ProductCard product={product} />
+              </div>
+            ))}
+            {filteredProducts.length === 0 && (
+              <div className="col-12 text-center py-5">
+                <p className="text-white-50 fs-5">No se encontraron productos en esta categoría.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

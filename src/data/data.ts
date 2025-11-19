@@ -146,8 +146,11 @@ function loadCart(): number[] {
     return raw ? (JSON.parse(raw) as number[]) : [];
   } catch { return []; }
 }
+
 function saveCart(list: number[]): void {
   localStorage.setItem(CART_KEY, JSON.stringify(list));
+  // 🔔 NUEVO: Despachar evento para que otros componentes (Carrito) sepan que hubo cambios
+  window.dispatchEvent(new Event('cart:change'));
 }
 
 export function getCart(): Product[] {
@@ -159,12 +162,15 @@ export function getCart(): Product[] {
   }
   return prods;
 }
+
 export function addToCart(id: number): Product[] {
   const ids: number[] = loadCart();
   ids.push(id);
   saveCart(ids);
   return getCart();
 }
+
+// Elimina UNA unidad del producto (para el botón "-")
 export function removeFromCart(id: number): Product[] {
   const ids: number[] = loadCart();
   const i = ids.indexOf(id);
@@ -172,6 +178,15 @@ export function removeFromCart(id: number): Product[] {
   saveCart(ids);
   return getCart();
 }
+
+// 🔔 NUEVO: Elimina TODAS las unidades de un producto
+export function removeAllFromCart(id: number): Product[] {
+  const ids: number[] = loadCart();
+  const newIds = ids.filter(itemId => itemId !== id);
+  saveCart(newIds);
+  return getCart();
+}
+
 export function clearCart(): Product[] {
   saveCart([]);
   return [];

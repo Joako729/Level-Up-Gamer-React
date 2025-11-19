@@ -1,127 +1,91 @@
 // src/pages/Registro.tsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-// Define la estructura de datos para el usuario en el almacenamiento local
-interface UserData {
-  name: string;
-  email: string;
-  password?: string;
-}
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Registro(): JSX.Element {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirm, setConfirm] = useState<string>('');
-  const [msg, setMsg] = useState<string>('');
-  const [err, setErr] = useState<string>('');
   const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
 
-  // Funciones helper para el almacenamiento local tipado
-  const loadUsers = (): Record<string, UserData> => {
-    try { return JSON.parse(localStorage.getItem('users_db') || '{}'); } catch { return {}; }
-  };
-  const saveUsers = (users: Record<string, UserData>): void => {
-    try { localStorage.setItem('users_db', JSON.stringify(users)); } catch {}
-  };
-  
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    setMsg(''); setErr('');
-
-    if (password.length < 6) {
-        setErr('La contraseña debe tener al menos 6 caracteres.');
-        return;
+    if (name.trim() && email.trim() && pass.trim()) {
+      // Guardar usuario simulado
+      localStorage.setItem('user_logged', '1');
+      localStorage.setItem('user_data', JSON.stringify({ name, email }));
+      
+      window.dispatchEvent(new Event('storage'));
+      navigate('/'); 
+    } else {
+      alert('Por favor, completa todos los campos.');
     }
-    if (password !== confirm) {
-      setErr('Las contraseñas no coinciden.');
-      return;
-    }
-
-    const users = loadUsers();
-    if (users[email]) {
-      setErr('Este correo ya está registrado.');
-      return;
-    }
-
-    // Registro exitoso
-    const namePart = email.split('@')[0];
-    users[email] = {
-        name: namePart.charAt(0).toUpperCase() + namePart.slice(1), // Capitalizar
-        email: email,
-        password: password,
-    };
-    saveUsers(users);
-
-    // Login automático después del registro
-    localStorage.setItem('user_logged', '1');
-    localStorage.setItem('user_name', users[email].name);
-    localStorage.setItem('user_email', email);
-
-    // Notifica a otros componentes (ej. App.tsx para el mensaje)
-    window.dispatchEvent(new Event('storage'));
-    
-    navigate('/');
   };
-  
-  // Tipado de eventos para cambios en inputs
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
-  const handleConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => setConfirm(e.target.value);
 
   return (
-    <div className="container py-4" style={{ maxWidth: 480 }}>
-      <h2 className="mb-3">Crear cuenta</h2>
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6 col-lg-5">
+          
+          {/* Tarjeta oscura */}
+          <div className="card bg-dark border-secondary shadow-lg rounded-3">
+            <div className="card-body p-4 p-md-5">
+              
+              {/* TÍTULO BLANCO */}
+              <h2 className="text-center mb-4 text-white fw-bold">Crear Cuenta</h2>
+              
+              <form onSubmit={handleRegister}>
+                <div className="mb-3">
+                  <label className="form-label text-light">Nombre Completo</label>
+                  <input 
+                    type="text" 
+                    className="form-control bg-secondary text-white border-0" 
+                    placeholder="Tu nombre"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
 
-      {msg && <div className="alert alert-success">{msg}</div>}
-      {err && <div className="alert alert-danger">{err}</div>}
+                <div className="mb-3">
+                  <label className="form-label text-light">Correo Electrónico</label>
+                  <input 
+                    type="email" 
+                    className="form-control bg-secondary text-white border-0" 
+                    placeholder="nombre@ejemplo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="form-label text-light">Contraseña</label>
+                  <input 
+                    type="password" 
+                    className="form-control bg-secondary text-white border-0" 
+                    placeholder="********"
+                    value={pass}
+                    onChange={(e) => setPass(e.target.value)}
+                  />
+                </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Correo</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={handleEmailChange}
-            placeholder="correo@dominio.com"
-            required
-            autoFocus
-          />
+                <button type="submit" className="btn btn-success w-100 fw-bold btn-lg">
+                  Registrarse
+                </button>
+              </form>
+
+              <hr className="border-secondary my-4" />
+
+              {/* TEXTOS Y ENLACES EN BLANCO */}
+              <div className="text-center">
+                <span className="text-white">¿Ya tienes cuenta? </span>
+                <Link to="/login" className="text-white fw-bold text-decoration-underline">
+                  Iniciar sesión
+                </Link>
+              </div>
+
+            </div>
+          </div>
         </div>
-
-        <div className="mb-3">
-          <label className="form-label">Contraseña</label>
-          <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={handlePasswordChange}
-            required
-          />
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Confirmar contraseña</label>
-          <input
-            type="password"
-            className="form-control"
-            value={confirm}
-            onChange={handleConfirmChange}
-            required
-          />
-        </div>
-
-        <button type="submit" className="btn btn-primary w-100">
-          Registrarme
-        </button>
-      </form>
-
-      <div className="text-center mt-3">
-        ¿Ya tienes cuenta?{' '}
-        <Link to="/login" className="link-primary">
-          Iniciar sesión
-        </Link>
       </div>
     </div>
   );

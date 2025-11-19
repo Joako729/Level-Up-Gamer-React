@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { Product, listProducts, listOffers } from '../data/data'; // Importar Product
+import { Product, listOffers } from '../data/data'; // Importar Product
 
 // Listado de categorías principales para el carousel de categorías
 const mainCategoriesSource: { name: string; image: string }[] = [
@@ -20,7 +20,7 @@ const newsItems: { id: number; title: string; image: string; summary: string }[]
 ];
 
 export default function Home(): JSX.Element {
-  const featuredProducts: Product[] = useMemo(() => listProducts().slice(0, 4), []);
+  // Se eliminó featuredProducts ya que no se usa
   const offers: Product[] = useMemo(() => listOffers(), []);
 
   // FILTRO: Eliminar "Juegos de Mesa" del acceso rápido
@@ -30,10 +30,9 @@ export default function Home(): JSX.Element {
   );
 
   return (
-    // CORRECCIÓN: Se elimina el backgroundColor del div principal.
     <div className="home-page" style={{ color: '#E0E0E0', minHeight: '100vh', paddingBottom: '50px' }}>
       
-      {/* 1. Banner Principal NUEVO Y SIMPLIFICADO */}
+      {/* 1. Banner Principal */}
       <div className="jumbotron jumbotron-fluid bg-primary text-white text-center py-5 mb-5 rounded-3 shadow-lg" 
            style={{ backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
         <div className="container">
@@ -49,7 +48,7 @@ export default function Home(): JSX.Element {
         </div>
       </div>
 
-      {/* 2. Noticias Gamer AHORA EN FORMATO CARRUSEL Y MÁS GRANDES */}
+      {/* 2. Noticias Gamer */}
       <section className="mb-5">
         <h2 className="text-center mb-4 text-light">📰 Noticias Gamer</h2>
         <div id="newsCarousel" className="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
@@ -95,19 +94,19 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* Productos Destacados */}
+      {/* 3. Ofertas de la Semana (MOVIDO AQUÍ) */}
       <section className="mb-5">
-        <h2 className="text-center mb-4 text-light">✨ Productos Destacados</h2>
+        <h2 className="text-center mb-4 text-light">⚡ Ofertas de la Semana</h2>
         <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-          {featuredProducts.map((product) => (
+          {offers.map((product) => (
             <div key={product.id} className="col">
-              <ProductCard product={product} /> 
+              <ProductCard product={product} />
             </div>
           ))}
         </div>
       </section>
 
-      {/* Carrusel de Categorías (Botón Juegos de Mesa ELIMINADO y Centrado) */}
+      {/* 4. Explora por Categoría */}
       <section className="mb-5">
         <h2 className="text-center mb-4 text-light">🎮 Explora por Categoría</h2>
         <div className="row g-3 justify-content-center"> 
@@ -126,17 +125,6 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* Ofertas de la Semana */}
-      <section className="mb-5">
-        <h2 className="text-center mb-4 text-light">⚡ Ofertas de la Semana</h2>
-        <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-          {offers.map((product) => (
-            <div key={product.id} className="col">
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

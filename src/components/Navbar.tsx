@@ -1,153 +1,145 @@
 // src/components/Navbar.tsx
-import React, { useEffect, useState } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { Product } from '../data/data'; // Importamos el tipo Product
-
-// Helper para calcular la cantidad de items
-function getCartCount(): number {
-  try {
-    const raw = localStorage.getItem('cart_v1'); // Usa la clave real del carrito
-    const cart: Product[] = raw ? (JSON.parse(raw) as Product[]) : [];
-    return cart.length;
-  } catch { return 0; }
-}
-
-// Helper para el perfil
-function getLoggedStatus(): boolean {
-  try { return localStorage.getItem('user_logged') === '1'; } catch { return false; }
-}
-
-function getUserName(): string {
-    return localStorage.getItem('user_name') || 'Invitado';
-}
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { getCart } from '../data/data';
 
 export default function Navbar(): JSX.Element {
-  const [cartCount, setCartCount] = useState<number>(getCartCount());
-  const [isLogged, setIsLogged] = useState<boolean>(getLoggedStatus());
-  const [userName, setUserName] = useState<string>(getUserName());
   const navigate = useNavigate();
+  
+  const [cartCount, setCartCount] = useState<number>(0);
+  const [isLogged, setIsLogged] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Escucha cambios en el carrito y el estado de login
   useEffect(() => {
-    // Handler para eventos de 'cart:change' y 'storage'
-    const updateStatus = () => {
-      setCartCount(getCartCount());
-      setIsLogged(getLoggedStatus());
-      setUserName(getUserName());
+    const refreshStatus = () => {
+      const items = getCart();
+      setCartCount(items.length);
+      try {
+        const logged = localStorage.getItem('user_logged') === '1';
+        setIsLogged(logged);
+      } catch {
+        setIsLogged(false);
+      }
     };
 
-    // Cast necesario para que TypeScript acepte la función como EventListener
-    window.addEventListener('cart:change', updateStatus as EventListener);
-    window.addEventListener('storage', updateStatus);
-    
-    // Cleanup
+    refreshStatus();
+    window.addEventListener('cart:change', refreshStatus);
+    window.addEventListener('storage', refreshStatus);
+
     return () => {
-      window.removeEventListener('cart:change', updateStatus as EventListener);
-      window.removeEventListener('storage', updateStatus);
+      window.removeEventListener('cart:change', refreshStatus);
+      window.removeEventListener('storage', refreshStatus);
     };
   }, []);
 
-  const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
+  const handleLogout = () => {
     localStorage.removeItem('user_logged');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_data');
     setIsLogged(false);
-    setUserName('Invitado');
-    // Forzamos el evento para notificar a otros componentes (App.tsx)
     window.dispatchEvent(new Event('storage'));
-    navigate('/');
+    navigate('/login');
   };
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const query = (e.currentTarget.elements.namedItem('search') as HTMLInputElement)?.value;
-    if (query) {
-      navigate(`/categorias?q=${encodeURIComponent(query)}`);
+    if (searchTerm.trim()) {
+      navigate(`/categorias?q=${encodeURIComponent(searchTerm)}`);
     }
   };
 
   return (
-    <nav className="navbar navbar-expand-lg bg-dark navbar-dark sticky-top" style={{ borderBottom: '3px solid #00D1FF' }}>
-      <div className="container-fluid">
-        <Link className="navbar-brand fw-bold text-info" to="/">
-          <i className="bi bi-controller me-2"></i> LEVEL-UP
-        </Link>
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+      <div className="container">
+        {/* Logo Level-Up (Azul y Blanco) */}
+        <NavLink className="navbar-brand fw-bold text-uppercase" to="/" style={{ letterSpacing: '1px' }}>
+          <span className="text-primary">Level</span><span className="text-light">-Up</span>
+        </NavLink>
+
+        <button 
+          className="navbar-toggler" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarContent"
+          aria-controls="navbarContent" 
+          aria-expanded="false" 
           aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
+
+        <div className="collapse navbar-collapse" id="navbarContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <NavLink className="nav-link" to="/categorias">
-                Catálogo
-              </NavLink>
+              <NavLink className="nav-link" to="/">Inicio</NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link" to="/ofertas">
-                Ofertas
-              </NavLink>
+              <NavLink className="nav-link" to="/categorias">Categorías</NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link" to="/admin">
-                Admin
-              </NavLink>
+              <NavLink className="nav-link" to="/ofertas">Ofertas</NavLink>
             </li>
+            {isLogged && (
+              <li className="nav-item">
+                <NavLink className="nav-link" to="/admin">Admin</NavLink>
+              </li>
+            )}
           </ul>
 
-          <form className="d-flex me-4" onSubmit={handleSearch}>
-            <input
-              className="form-control me-2"
-              type="search"
-              placeholder="Buscar producto..."
+          {/* Buscador con lupa dentro */}
+          <form className="d-flex position-relative me-3 align-items-center" onSubmit={handleSearch}>
+            <input 
+              className="form-control pe-5 bg-dark text-light border-secondary" 
+              type="search" 
+              placeholder="Buscar..." 
               aria-label="Search"
-              name="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="btn btn-outline-info" type="submit">
-              <i className="bi bi-search"></i>
+            <button 
+              className="btn position-absolute end-0 border-0 bg-transparent" 
+              type="submit"
+              style={{ zIndex: 5 }}
+            >
+              🔍
             </button>
           </form>
 
-          <ul className="navbar-nav d-flex flex-row gap-2 align-items-center">
-            <li className="nav-item">
-              <Link className="btn btn-outline-light me-2 position-relative" to="/carrito">
-                <i className="bi bi-cart4"></i>
+          {/* Acciones (Carrito y Login) */}
+          <div className="d-flex align-items-center gap-2">
+            <NavLink to="/carrito" className="btn btn-outline-light position-relative">
+              🛒
+              {cartCount > 0 && (
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                   {cartCount}
-                  <span className="visually-hidden">Productos en el carrito</span>
+                  <span className="visually-hidden">ítems en carrito</span>
                 </span>
-              </Link>
-            </li>
+              )}
+            </NavLink>
 
-            <li className="nav-item dropdown">
-              <a className="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i className="bi bi-person-circle me-1"></i>
-                {isLogged ? userName : 'Cuenta'}
-              </a>
-              <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="navbarDropdown">
-                {isLogged ? (
-                  <>
-                    <li><span className="dropdown-item text-muted small">Logueado como {userName}</span></li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li><a className="dropdown-item" href="#" onClick={handleLogout}>Cerrar Sesión</a></li>
-                  </>
-                ) : (
-                  <>
-                    <li><Link className="dropdown-item" to="/login">Iniciar Sesión</Link></li>
-                    <li><Link className="dropdown-item" to="/registro">Registrarse</Link></li>
-                  </>
-                )}
-              </ul>
-            </li>
-          </ul>
+            {isLogged ? (
+              <div className="dropdown">
+                <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  👤 Mi Cuenta
+                </button>
+                <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                  <li><button className="dropdown-item" onClick={handleLogout}>Cerrar Sesión</button></li>
+                </ul>
+              </div>
+            ) : (
+              <div className="btn-group">
+                {/* 🔔 CAMBIOS AQUÍ: 
+                    - Iniciar sesión: text-white forzado.
+                    - Registro: btn-outline-light para borde y texto blanco. 
+                */}
+                <NavLink to="/login" className="btn btn-primary text-white">
+                  Iniciar sesión
+                </NavLink>
+                <NavLink to="/registro" className="btn btn-outline-light">
+                  Registro
+                </NavLink>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>
