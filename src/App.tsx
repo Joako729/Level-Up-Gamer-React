@@ -1,8 +1,6 @@
-// App.tsx
-import { HashRouter as Router } from 'react-router-dom';
-
+// src/App.tsx
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // Corregido imports
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -17,153 +15,133 @@ import CompraFallida from './pages/CompraFallida';
 import AdminPanel from './pages/AdminPanel';
 import './App.css';
 
-// Define type for admin credentials
-interface AdminCredentials {
-  user: string;
-  pass: string;
+// --- COMPONENTE DE LOGIN ADMIN (Definido afuera para evitar errores) ---
+interface AdminLoginProps {
+  onLogin: () => void;
 }
 
-export default function App(): JSX.Element {
-  // Persistencia simple en sessionStorage para el login de admin
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    try { return sessionStorage.getItem('isAdminAuth') === '1'; } catch { return false; }
-  });
+function AdminLogin({ onLogin }: AdminLoginProps): JSX.Element {
+  const [user, setUser] = useState('');
+  const [pass, setPass] = useState('');
+  const [error, setError] = useState('');
 
-  // 🔔 NUEVO: mensaje global para login/registro correcto
-  const [authMsg, setAuthMsg] = useState<string>('');
-  const [authMsgType] = useState<string>('success'); // solo mostramos success
-  const [wasLogged, setWasLogged] = useState<boolean>(() => {
-    try { return localStorage.getItem('user_logged') === '1'; } catch { return false; }
-  });
+  const ADMIN_CREDENTIALS = { user: 'levelupadmin', pass: 'levelupadmin' };
 
-  // Credenciales admin (puedes cambiarlas)
-  const ADMIN_CREDENTIALS: AdminCredentials = { user: 'levelupadmin', pass: 'levelupadmin' };
-
-  // Escucha cambios en localStorage.user_logged para mostrar mensajes
-  useEffect(() => {
-    const handler = () => {
-      let now: boolean = false;
-      try { now = localStorage.getItem('user_logged') === '1'; } catch {}
-
-      // transición de no-logueado -> logueado
-      if (!wasLogged && now) {
-        const path = (window.location.pathname || '').toLowerCase();
-        if (path.includes('/registro')) {
-          setAuthMsg('Registrado correctamente.');
-        } else if (path.includes('/login')) {
-          setAuthMsg('Inicio de sesión correctamente.');
-        } else {
-          setAuthMsg('Inicio de sesión correctamente.');
-        }
-        // ocultar automáticamente después de 4s
-        setTimeout(() => setAuthMsg(''), 4000);
-      }
-      setWasLogged(now);
-    };
-
-    // Chequeo inicial + suscripción a cambios
-    handler();
-    window.addEventListener('storage', handler as EventListener);
-    return () => window.removeEventListener('storage', handler as EventListener);
-  }, [wasLogged]);
-
-
-  function AdminWrapper(): JSX.Element {
-    const [user, setUser] = useState<string>('');
-    const [pass, setPass] = useState<string>('');
-    const [error, setError] = useState<string>('');
-
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const matchDefault: boolean = user === ADMIN_CREDENTIALS.user && pass === ADMIN_CREDENTIALS.pass;
-      const matchSame: boolean = user !== '' && user === pass; // “si son las mismas, puede ingresar”
-
-      if (matchDefault || matchSame) {
-        setIsAdminAuthenticated(true);
-        try { sessionStorage.setItem('isAdminAuth', '1'); } catch {}
-        setError('');
-        return;
-      }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Verificación simple
+    if (user === ADMIN_CREDENTIALS.user && pass === ADMIN_CREDENTIALS.pass) {
+      onLogin();
+    } else {
       setError('Credenciales incorrectas.');
-    };
+    }
+  };
 
-    if (isAdminAuthenticated) return <AdminPanel />;
+  return (
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6 col-lg-5">
+          {/* Tarjeta estilo Dark Mode */}
+          <div className="card bg-dark border-secondary shadow-lg rounded-3">
+            <div className="card-body p-4 p-md-5">
+              <h3 className="text-center mb-4 text-white fw-bold">Acceso Administrador</h3>
 
-    // Formulario de acceso
-    return (
-      <div className="container py-5">
-        <div className="row justify-content-center">
-          <div className="col-md-6 col-lg-4">
-            <div className="card shadow-sm border-0 rounded-3">
-              <div className="card-body p-4">
-                <h3 className="text-center mb-4">Acceso administrador</h3>
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label className="form-label text-light">Usuario</label>
+                  <input
+                    className="form-control bg-secondary text-white border-0"
+                    value={user}
+                    onChange={(e) => setUser(e.target.value)}
+                    placeholder="Usuario admin"
+                    autoFocus
+                  />
+                </div>
 
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-3">
-                    <label className="form-label">Nombre de usuario</label>
-                    <input
-                      className="form-control"
-                      value={user}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUser(e.target.value)}
-                      placeholder="usuario"
-                      autoFocus
-                    />
-                  </div>
+                <div className="mb-4">
+                  <label className="form-label text-light">Contraseña</label>
+                  <input
+                    type="password"
+                    className="form-control bg-secondary text-white border-0"
+                    value={pass}
+                    onChange={(e) => setPass(e.target.value)}
+                    placeholder="Contraseña"
+                  />
+                </div>
 
-                  <div className="mb-3">
-                    <label className="form-label">Contraseña</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      value={pass}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPass(e.target.value)}
-                      placeholder="contraseña"
-                    />
-                  </div>
+                {error && <div className="alert alert-danger">{error}</div>}
 
-                  {error && <div className="alert alert-danger">{error}</div>}
+                <div className="d-grid gap-2">
+                  <button type="submit" className="btn btn-primary btn-lg fw-bold">
+                    Ingresar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-light btn-sm mt-2 border-0"
+                    onClick={() => alert(`Usuario: ${ADMIN_CREDENTIALS.user}\nPass: ${ADMIN_CREDENTIALS.pass}`)}
+                  >
+                    ¿Olvidaste la contraseña?
+                  </button>
+                </div>
+              </form>
 
-                  <div className="d-flex gap-2">
-                    <button type="submit" className="btn btn-primary w-100">
-                      Ingresar
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary"
-                      onClick={() =>
-                        alert(
-                          `Puedes ingresar con:\nusuario: ${ADMIN_CREDENTIALS.user}\ncontraseña: ${ADMIN_CREDENTIALS.pass}\n\nO cualquier par usuario=contraseña.`
-                        )
-                      }
-                    >
-                      Ayuda
-                    </button>
-                  </div>
-                </form>
-
-              </div>
             </div>
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
+// --- COMPONENTE PRINCIPAL APP ---
+export default function App(): JSX.Element {
+  // Estado de autenticación admin
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    try { return sessionStorage.getItem('isAdminAuth') === '1'; } catch { return false; }
+  });
+
+  // Mensajes globales de login usuario (opcional)
+  const [authMsg, setAuthMsg] = useState<string>('');
+  const [wasLogged, setWasLogged] = useState<boolean>(() => {
+    try { return localStorage.getItem('user_logged') === '1'; } catch { return false; }
+  });
+
+  useEffect(() => {
+    const handler = () => {
+      let now = false;
+      try { now = localStorage.getItem('user_logged') === '1'; } catch {}
+      
+      if (!wasLogged && now) {
+        setAuthMsg('Inicio de sesión correcto.');
+        setTimeout(() => setAuthMsg(''), 4000);
+      }
+      setWasLogged(now);
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, [wasLogged]);
+
+  // Handlers para Admin
+  const handleAdminLogin = () => {
+    setIsAdminAuthenticated(true);
+    sessionStorage.setItem('isAdminAuth', '1');
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminAuthenticated(false);
+    sessionStorage.removeItem('isAdminAuth');
+  };
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <Navbar />
 
-      {/* 🔔 Alerta global de login/registro correcto */}
+      {/* Alerta flotante */}
       {authMsg && (
         <div className="container pt-3">
           <div className="alert alert-success alert-dismissible fade show" role="alert">
             {authMsg}
-            <button
-              type="button"
-              className="btn-close"
-              aria-label="Close"
-              onClick={() => setAuthMsg('')}
-            />
+            <button type="button" className="btn-close" onClick={() => setAuthMsg('')} />
           </div>
         </div>
       )}
@@ -179,8 +157,16 @@ export default function App(): JSX.Element {
           <Route path="/compra-fallida" element={<CompraFallida />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
-          {/* Ruta protegida de admin */}
-          <Route path="/admin" element={<AdminWrapper />} />
+          
+          {/* RUTA ADMIN PROTEGIDA */}
+          <Route 
+            path="/admin" 
+            element={
+              isAdminAuthenticated 
+                ? <AdminPanel onLogout={handleAdminLogout} /> 
+                : <AdminLogin onLogin={handleAdminLogin} />
+            } 
+          />
         </Routes>
       </main>
       <Footer />

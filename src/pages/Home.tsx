@@ -4,7 +4,6 @@ import { NavLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { Product, listOffers } from '../data/data';
 
-// Listado de categorías principales
 const mainCategoriesSource: { name: string; image: string }[] = [
   { name: 'Accesorios', image: 'Img/Producto_Img/accesorios.png' },
   { name: 'Consolas', image: 'Img/Producto_Img/consolas.png' },
@@ -12,12 +11,10 @@ const mainCategoriesSource: { name: string; image: string }[] = [
   { name: 'Juegos de Mesa', image: 'Img/Producto_Img/Catan.png' },
 ];
 
-// 🔔 CAMBIO PRINCIPAL: Asignación de las nuevas imágenes a las noticias correspondientes
 const newsItems: { id: number; title: string; image: string; summary: string; link: string }[] = [
   { 
     id: 1, 
     title: 'Tendencias en periféricos RGB', 
-    // Mantenemos esta imagen o ajusta si tienes una específica para periféricos
     image: 'Img/Producto_Img/noticia1.png', 
     summary: 'Un vistazo a los teclados, mouses y audífonos que están dominando el mercado con la mejor iluminación personalizable.',
     link: 'https://mutant.cl/blogs/noticias/perifericos-gamer-2025-los-favoritos-de-los-equipos-de-esports'
@@ -25,16 +22,14 @@ const newsItems: { id: number; title: string; image: string; summary: string; li
   { 
     id: 2, 
     title: 'E-Sports: Chile se prepara para el mundial', 
-    // 🔔 AQUÍ: Usamos la Image 1 que subiste (jugador de E-Sports)
-    image: 'Img/Producto_Img/fakerlol.png', // Asegúrate de que este nombre coincida con tu archivo guardado
+    image: 'Img/Producto_Img/fakerlol.png', 
     summary: 'La selección chilena de LoL se clasifica para las finales globales en Asia, un hito histórico para la región.',
     link: 'https://nexoplay.com/red-bull-solo-q-2024-chile-maig-representara-a-chile-en-el-mundial-de-lol/'
   },
   { 
     id: 3, 
     title: 'Lanzamiento PS6: Rumores y Especificaciones', 
-    // 🔔 AQUÍ: Usamos la Image 2 que subiste (consola PS6)
-    image: 'Img/Producto_Img/playstation6.png', // Asegúrate de que este nombre coincida con tu archivo guardado
+    image: 'Img/Producto_Img/playstation6.png', 
     summary: 'Se filtran posibles detalles de la próxima consola de Sony, incluyendo el chip gráfico y el SSD mejorado.',
     link: 'https://vandal.elespanol.com/noticia/1350784969/entre-rumores-e-informaciones-de-ps6-sony-asegura-que-playstation-5-esta-a-mitad-de-su-ciclo/'
   },
@@ -51,9 +46,9 @@ export default function Home(): JSX.Element {
   return (
     <div className="home-page" style={{ color: '#E0E0E0', minHeight: '100vh', paddingBottom: '50px' }}>
       
-      {/* 1. Banner Principal */}
-      <div className="jumbotron jumbotron-fluid bg-primary text-white text-center py-5 mb-5 rounded-3 shadow-lg" 
-           style={{ backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      {/* 🔔 CAMBIO: Banner con un AZUL MÁS CLARO y vibrante */}
+      <div className="jumbotron jumbotron-fluid text-white text-center py-5 mb-5 rounded-3 shadow-lg" 
+           style={{ backgroundImage: 'linear-gradient(135deg, #0072ff 0%, #00c6ff 100%)' }}>
         <div className="container">
           <h1 className="display-4 fw-bold">¡Bienvenido a LEVEL-UP!</h1>
           <p className="lead">Tu portal definitivo para lo último en tecnología y juegos.</p>
@@ -71,7 +66,6 @@ export default function Home(): JSX.Element {
       <section className="mb-5">
         <h2 className="text-center mb-4 text-light">📰 Noticias Gamer</h2>
         <div id="newsCarousel" className="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
-            {/* Indicadores */}
             <div className="carousel-indicators">
                 {newsItems.map((_, index) => (
                     <button 
@@ -86,7 +80,6 @@ export default function Home(): JSX.Element {
                 ))}
             </div>
 
-            {/* Contenedor de las noticias */}
             <div className="carousel-inner rounded-3 shadow-lg">
                 {newsItems.map((news, index) => (
                     <div key={news.id} className={`carousel-item ${index === 0 ? 'active' : ''}`}>
@@ -108,7 +101,6 @@ export default function Home(): JSX.Element {
                 ))}
             </div>
             
-            {/* Controles de navegación */}
             <button className="carousel-control-prev" type="button" data-bs-target="#newsCarousel" data-bs-slide="prev">
                 <span className="carousel-control-prev-icon" aria-hidden="true"></span>
                 <span className="visually-hidden">Anterior</span>

@@ -9,10 +9,10 @@ export default function Ofertas(): JSX.Element {
   return (
     <div className="container py-4">
       
-      {/* Header de Ofertas con el TEXTO SOLICITADO */}
+      {/* 🔔 CAMBIO: Header con AZUL MÁS CLARO */}
       <div className="text-center mb-5 py-5 rounded-3 shadow-lg" 
            style={{ 
-             background: 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)', 
+             background: 'linear-gradient(135deg, #0072ff 0%, #00c6ff 100%)', // Mismo azul claro
              border: '1px solid rgba(255,255,255,0.1)' 
            }}>
         <h1 className="display-4 fw-bold text-white mb-3">🔥 Ofertas Imperdibles</h1>

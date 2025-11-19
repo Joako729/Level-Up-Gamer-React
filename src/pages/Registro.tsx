@@ -68,7 +68,8 @@ export default function Registro(): JSX.Element {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-success w-100 fw-bold btn-lg">
+                {/* 🔔 CAMBIO: Botón btn-primary (AZUL) */}
+                <button type="submit" className="btn btn-primary w-100 fw-bold btn-lg">
                   Registrarse
                 </button>
               </form>

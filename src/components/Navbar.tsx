@@ -50,7 +50,7 @@ export default function Navbar(): JSX.Element {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
       <div className="container">
-        {/* Logo Level-Up (Azul y Blanco) */}
+        {/* Logo */}
         <NavLink className="navbar-brand fw-bold text-uppercase" to="/" style={{ letterSpacing: '1px' }}>
           <span className="text-primary">Level</span><span className="text-light">-Up</span>
         </NavLink>
@@ -78,14 +78,10 @@ export default function Navbar(): JSX.Element {
             <li className="nav-item">
               <NavLink className="nav-link" to="/ofertas">Ofertas</NavLink>
             </li>
-            {isLogged && (
-              <li className="nav-item">
-                <NavLink className="nav-link" to="/admin">Admin</NavLink>
-              </li>
-            )}
+            {/* NOTA: Se eliminó el link de Admin de aquí para moverlo a la derecha */}
           </ul>
 
-          {/* Buscador con lupa dentro */}
+          {/* Buscador */}
           <form className="d-flex position-relative me-3 align-items-center" onSubmit={handleSearch}>
             <input 
               className="form-control pe-5 bg-dark text-light border-secondary" 
@@ -104,7 +100,7 @@ export default function Navbar(): JSX.Element {
             </button>
           </form>
 
-          {/* Acciones (Carrito y Login) */}
+          {/* Acciones */}
           <div className="d-flex align-items-center gap-2">
             <NavLink to="/carrito" className="btn btn-outline-light position-relative">
               🛒
@@ -117,25 +113,31 @@ export default function Navbar(): JSX.Element {
             </NavLink>
 
             {isLogged ? (
-              <div className="dropdown">
-                <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                  👤 Mi Cuenta
-                </button>
-                <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark">
-                  <li><button className="dropdown-item" onClick={handleLogout}>Cerrar Sesión</button></li>
-                </ul>
-              </div>
+              <>
+                {/* 🔔 NUEVO: Botón Admin visible al estar logueado, separado de Mi Cuenta */}
+                <NavLink to="/admin" className="btn btn-dark border-secondary text-white">
+                  Admin
+                </NavLink>
+
+                <div className="dropdown">
+                  <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    👤 Mi Cuenta
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                    <li><button className="dropdown-item" onClick={handleLogout}>Cerrar Sesión</button></li>
+                  </ul>
+                </div>
+              </>
             ) : (
               <div className="btn-group">
-                {/* 🔔 CAMBIOS AQUÍ: 
-                    - Iniciar sesión: text-white forzado.
-                    - Registro: btn-outline-light para borde y texto blanco. 
-                */}
-                <NavLink to="/login" className="btn btn-primary text-white">
+                <NavLink to="/login" className="btn btn-dark border-secondary text-white">
                   Iniciar sesión
                 </NavLink>
-                <NavLink to="/registro" className="btn btn-outline-light">
+                <NavLink to="/registro" className="btn btn-dark border-secondary text-white">
                   Registro
+                </NavLink>
+                <NavLink to="/admin" className="btn btn-dark border-secondary text-white">
+                  Admin
                 </NavLink>
               </div>
             )}
