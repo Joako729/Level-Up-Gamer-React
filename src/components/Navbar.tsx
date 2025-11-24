@@ -8,23 +8,26 @@ export default function Navbar(): JSX.Element {
   
   const [cartCount, setCartCount] = useState<number>(0);
   const [isLogged, setIsLogged] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState<boolean>(false); // Nuevo estado Admin
 
   useEffect(() => {
     const refreshStatus = () => {
       const items = getCart();
       setCartCount(items.length);
-      try {
-        const logged = localStorage.getItem('user_logged') === '1';
-        setIsLogged(logged);
-      } catch {
-        setIsLogged(false);
-      }
+      
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('user_role');
+      const name = localStorage.getItem('user_name');
+
+      setIsLogged(!!token);
+      setIsAdmin(role === 'ADMIN');
+      setUserName(name || '');
     };
 
     refreshStatus();
     window.addEventListener('cart:change', refreshStatus);
-    window.addEventListener('storage', refreshStatus);
+    window.addEventListener('storage', refreshStatus); // Escucha cambios de Login/Logout
 
     return () => {
       window.removeEventListener('cart:change', refreshStatus);
@@ -33,112 +36,50 @@ export default function Navbar(): JSX.Element {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('user_logged');
-    localStorage.removeItem('user_data');
-    setIsLogged(false);
+    localStorage.clear();
     window.dispatchEvent(new Event('storage'));
     navigate('/login');
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/categorias?q=${encodeURIComponent(searchTerm)}`);
-    }
   };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
       <div className="container">
-        {/* Logo */}
-        <NavLink className="navbar-brand fw-bold text-uppercase" to="/" style={{ letterSpacing: '1px' }}>
+        <NavLink className="navbar-brand fw-bold text-uppercase" to="/">
           <span className="text-primary">Level</span><span className="text-light">-Up</span>
         </NavLink>
 
-        <button 
-          className="navbar-toggler" 
-          type="button" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#navbarContent"
-          aria-controls="navbarContent" 
-          aria-expanded="false" 
-          aria-label="Toggle navigation"
-        >
+        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
           <span className="navbar-toggler-icon"></span>
         </button>
 
         <div className="collapse navbar-collapse" id="navbarContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/">Inicio</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/categorias">Categorías</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/ofertas">Ofertas</NavLink>
-            </li>
-            {/* NOTA: Se eliminó el link de Admin de aquí para moverlo a la derecha */}
+            <li className="nav-item"><NavLink className="nav-link" to="/">Inicio</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/categorias">Categorías</NavLink></li>
+            {isAdmin && (
+               <li className="nav-item"><NavLink className="nav-link text-warning" to="/admin">Panel Admin</NavLink></li>
+            )}
           </ul>
 
-          {/* Buscador */}
-          <form className="d-flex position-relative me-3 align-items-center" onSubmit={handleSearch}>
-            <input 
-              className="form-control pe-5 bg-dark text-light border-secondary" 
-              type="search" 
-              placeholder="Buscar..." 
-              aria-label="Search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button 
-              className="btn position-absolute end-0 border-0 bg-transparent" 
-              type="submit"
-              style={{ zIndex: 5 }}
-            >
-              🔍
-            </button>
-          </form>
-
-          {/* Acciones */}
           <div className="d-flex align-items-center gap-2">
             <NavLink to="/carrito" className="btn btn-outline-light position-relative">
-              🛒
-              {cartCount > 0 && (
-                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  {cartCount}
-                  <span className="visually-hidden">ítems en carrito</span>
-                </span>
-              )}
+              🛒 {cartCount > 0 && <span className="badge bg-danger ms-1">{cartCount}</span>}
             </NavLink>
 
             {isLogged ? (
-              <>
-                {/* 🔔 NUEVO: Botón Admin visible al estar logueado, separado de Mi Cuenta */}
-                <NavLink to="/admin" className="btn btn-dark border-secondary text-white">
-                  Admin
-                </NavLink>
-
-                <div className="dropdown">
-                  <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    👤 Mi Cuenta
-                  </button>
-                  <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark">
-                    <li><button className="dropdown-item" onClick={handleLogout}>Cerrar Sesión</button></li>
-                  </ul>
-                </div>
-              </>
+              <div className="dropdown">
+                <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  👤 {userName}
+                </button>
+                <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                  {isAdmin && <li><NavLink className="dropdown-item" to="/admin">Administrar</NavLink></li>}
+                  <li><button className="dropdown-item" onClick={handleLogout}>Cerrar Sesión</button></li>
+                </ul>
+              </div>
             ) : (
               <div className="btn-group">
-                <NavLink to="/login" className="btn btn-dark border-secondary text-white">
-                  Iniciar sesión
-                </NavLink>
-                <NavLink to="/registro" className="btn btn-dark border-secondary text-white">
-                  Registro
-                </NavLink>
-                <NavLink to="/admin" className="btn btn-dark border-secondary text-white">
-                  Admin
-                </NavLink>
+                <NavLink to="/login" className="btn btn-dark border-secondary">Login</NavLink>
+                <NavLink to="/registro" className="btn btn-primary">Registro</NavLink>
               </div>
             )}
           </div>
