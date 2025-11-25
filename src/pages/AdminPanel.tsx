@@ -129,7 +129,7 @@ export default function AdminPanel({ onLogout }: AdminPanelProps): JSX.Element {
                       <option value="Accesorios">Accesorios</option>
                       <option value="Consolas">Consolas</option>
                       <option value="PCs">PCs</option>
-                      <option value="Sillas">Sillas</option>
+                      <option value="Juegos de mesa">Juegos De Mesa</option>
                       <option value="Ropa">Ropa</option>
                     </select>
                   </div>
