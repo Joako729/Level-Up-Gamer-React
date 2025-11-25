@@ -1,5 +1,4 @@
 // src/services/api.ts
-
 export const API_URL = "http://localhost:8080/api";
 
 const getAuthHeaders = () => {
@@ -11,24 +10,19 @@ const getAuthHeaders = () => {
 };
 
 export const api = {
-  // --- AUTH ---
-  login: async (credentials: any) => {
+  // --- AUTENTICACIÓN ---
+  login: async (creds: any) => {
     const res = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(credentials),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(creds)
     });
-    if (!res.ok) throw new Error("Credenciales inválidas");
+    if (!res.ok) throw new Error("Error Login");
     return res.json();
   },
-
-  register: async (userData: any) => {
+  register: async (data: any) => {
     const res = await fetch(`${API_URL}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error("Error en el registro");
+    if (!res.ok) throw new Error("Error Registro");
     return res.json();
   },
 
@@ -37,65 +31,66 @@ export const api = {
     const res = await fetch(`${API_URL}/productos`, { headers: getAuthHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
-    // Mapeo Backend -> Frontend
     return data.map((p: any) => ({
-      id: p.id,
-      name: p.nombre,
-      price: p.precio,
-      category: p.categoria,
-      description: p.descripcion,
-      image: p.imagen,
-      stock: p.stock,
-      offer: p.offer || false // Asumiendo que agregaste oferta, si no, false
+      id: p.id, name: p.nombre, price: p.precio, category: p.categoria,
+      description: p.descripcion, image: p.imagen, stock: p.stock, offer: p.offer || false
     }));
   },
-
-  createProduct: async (product: any) => {
-    // Mapeo Frontend -> Backend
-    const backendProduct = {
-      nombre: product.name,
-      precio: product.price,
-      categoria: product.category,
-      descripcion: product.description,
-      imagen: product.image,
-      stock: 10
+  createProduct: async (prod: any) => {
+    const backendProd = {
+      nombre: prod.name, precio: prod.price, categoria: prod.category,
+      descripcion: prod.description, imagen: prod.image, stock: 10
     };
-
     const res = await fetch(`${API_URL}/productos`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(backendProduct),
+      method: "POST", headers: getAuthHeaders(), body: JSON.stringify(backendProd)
     });
-    if (!res.ok) throw new Error("Error al crear producto");
+    if (!res.ok) throw new Error("Error crear");
     return res.json();
   },
-
-  // --- NUEVO: FUNCIÓN PARA ACTUALIZAR ---
-  updateProduct: async (id: number, product: any) => {
-    const backendProduct = {
-      nombre: product.name,
-      precio: product.price,
-      categoria: product.category,
-      descripcion: product.description,
-      imagen: product.image,
-      stock: 10
+  updateProduct: async (id: number, prod: any) => {
+    const backendProd = {
+      nombre: prod.name, precio: prod.price, categoria: prod.category,
+      descripcion: prod.description, imagen: prod.image, stock: 10
     };
-
     const res = await fetch(`${API_URL}/productos/${id}`, {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(backendProduct),
+      method: "PUT", headers: getAuthHeaders(), body: JSON.stringify(backendProd)
     });
-    if (!res.ok) throw new Error("Error al actualizar");
+    if (!res.ok) throw new Error("Error actualizar");
     return res.json();
   },
-
   deleteProduct: async (id: number) => {
     const res = await fetch(`${API_URL}/productos/${id}`, {
-      method: "DELETE",
-      headers: getAuthHeaders(),
+      method: "DELETE", headers: getAuthHeaders()
     });
-    if (!res.ok) throw new Error("Error al eliminar");
+    if (!res.ok) throw new Error("Error borrar");
     return true;
+  },
+
+  // --- USUARIOS (Solo Admin) ---
+  getUsers: async () => {
+    const res = await fetch(`${API_URL}/usuarios`, { headers: getAuthHeaders() });
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  // --- PEDIDOS ---
+  createOrder: async (orderData: any) => {
+    const res = await fetch(`${API_URL}/pedidos`, {
+      method: "POST", headers: getAuthHeaders(), body: JSON.stringify(orderData)
+    });
+    if (!res.ok) throw new Error("Error pedido");
+    return res.json();
+  },
+  // Admin ve todos
+  getAllOrders: async () => {
+    const res = await fetch(`${API_URL}/pedidos`, { headers: getAuthHeaders() });
+    if (!res.ok) return [];
+    return res.json();
+  },
+  // Cliente ve los suyos
+  getMyOrders: async () => {
+    const res = await fetch(`${API_URL}/pedidos/mis-pedidos`, { headers: getAuthHeaders() });
+    if (!res.ok) return [];
+    return res.json();
   }
 };

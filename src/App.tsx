@@ -12,36 +12,28 @@ import Login from './pages/Login';
 import Registro from './pages/Registro';
 import CompraExitosa from './pages/CompraExitosa';
 import CompraFallida from './pages/CompraFallida';
-import AdminPanel from './pages/AdminPanel';
+import Perfil from './pages/Perfil';
 import './App.css';
 
-// Componente para proteger la ruta de Admin
-const ProtectedAdminRoute = ({ children }: { children: JSX.Element }) => {
-  const role = localStorage.getItem('user_role');
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const token = localStorage.getItem('token');
-  
-  // Si no tiene token o no es admin, lo mandamos al login
-  if (!token || role !== 'ADMIN') {
-    return <Navigate to="/login" replace />;
-  }
+  if (!token) return <Navigate to="/login" replace />;
   return children;
 };
 
 export default function App(): JSX.Element {
-  const [authMsg, setAuthMsg] = useState<string>('');
-  const [wasLogged, setWasLogged] = useState<boolean>(false);
+  const [authMsg, setAuthMsg] = useState('');
+  const [wasLogged, setWasLogged] = useState(false);
 
-  // Escuchar cambios en el login para mostrar mensaje
   useEffect(() => {
     const checkLogin = () => {
       const isLogged = localStorage.getItem('user_logged') === '1';
       if (!wasLogged && isLogged) {
-        setAuthMsg('Sesión iniciada correctamente.');
+        setAuthMsg('Sesión iniciada.');
         setTimeout(() => setAuthMsg(''), 4000);
       }
       setWasLogged(isLogged);
     };
-
     window.addEventListener('storage', checkLogin);
     return () => window.removeEventListener('storage', checkLogin);
   }, [wasLogged]);
@@ -49,17 +41,7 @@ export default function App(): JSX.Element {
   return (
     <div className="d-flex flex-column min-vh-100">
       <Navbar />
-
-      {/* Alerta flotante */}
-      {authMsg && (
-        <div className="container pt-3">
-          <div className="alert alert-success alert-dismissible fade show" role="alert">
-            {authMsg}
-            <button type="button" className="btn-close" onClick={() => setAuthMsg('')} />
-          </div>
-        </div>
-      )}
-
+      {authMsg && <div className="container pt-3"><div className="alert alert-success fade show">{authMsg}</div></div>}
       <main className="flex-grow-1 container py-3">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -71,16 +53,8 @@ export default function App(): JSX.Element {
           <Route path="/compra-fallida" element={<CompraFallida />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
-          
-          {/* RUTA ADMIN PROTEGIDA CON TOKEN REAL */}
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedAdminRoute>
-                <AdminPanel />
-              </ProtectedAdminRoute>
-            } 
-          />
+          <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+          <Route path="/admin" element={<Navigate to="/perfil" replace />} />
         </Routes>
       </main>
       <Footer />

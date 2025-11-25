@@ -1,7 +1,6 @@
-// src/pages/Login.tsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../services/api'; // Importamos nuestro servicio
+import { api } from '../services/api';
 
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
@@ -16,24 +15,20 @@ export default function Login(): JSX.Element {
     setLoading(true);
 
     try {
-      // 1. Llamamos al backend
       const data = await api.login({ email, password: pass });
       
-      // 2. Guardamos Token y Datos
+      // GUARDAMOS TODO EN MEMORIA
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user_role', data.rol); // IMPORTANTE: Guardamos el rol
+      localStorage.setItem('user_role', data.rol);
       localStorage.setItem('user_name', data.nombre);
+      localStorage.setItem('user_email', data.email); // <--- ESTO FALTABA
+      localStorage.setItem('user_id', data.id);
       localStorage.setItem('user_logged', '1');
 
-      // 3. Notificamos a la app
       window.dispatchEvent(new Event('storage'));
       
-      // 4. Redirigimos según rol
-      if (data.rol === 'ADMIN') {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+      // Redirigir siempre al perfil unificado
+      navigate('/perfil');
 
     } catch (err) {
       setError('Email o contraseña incorrectos');
@@ -48,48 +43,28 @@ export default function Login(): JSX.Element {
         <div className="col-md-6 col-lg-5">
           <div className="card bg-dark border-secondary shadow-lg rounded-3">
             <div className="card-body p-4 p-md-5">
-              
               <h2 className="text-center mb-4 text-white fw-bold">Iniciar Sesión</h2>
-              
               {error && <div className="alert alert-danger text-center">{error}</div>}
-
               <form onSubmit={handleLogin}>
                 <div className="mb-3">
                   <label className="form-label text-light">Correo Electrónico</label>
-                  <input 
-                    type="email" 
-                    className="form-control bg-secondary text-white border-0" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <input type="email" className="form-control bg-secondary text-white border-0" 
+                    value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
-                
                 <div className="mb-4">
                   <label className="form-label text-light">Contraseña</label>
-                  <input 
-                    type="password" 
-                    className="form-control bg-secondary text-white border-0" 
-                    value={pass}
-                    onChange={(e) => setPass(e.target.value)}
-                    required
-                  />
+                  <input type="password" className="form-control bg-secondary text-white border-0" 
+                    value={pass} onChange={(e) => setPass(e.target.value)} required />
                 </div>
-
                 <button type="submit" className="btn btn-primary w-100 fw-bold btn-lg" disabled={loading}>
                   {loading ? 'Cargando...' : 'Ingresar'}
                 </button>
               </form>
-
               <hr className="border-secondary my-4" />
-
               <div className="text-center">
                 <span className="text-white">¿No tienes cuenta? </span>
-                <Link to="/registro" className="text-white fw-bold text-decoration-underline">
-                  Crear cuenta
-                </Link>
+                <Link to="/registro" className="text-white fw-bold text-decoration-underline">Crear cuenta</Link>
               </div>
-
             </div>
           </div>
         </div>
