@@ -3,8 +3,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { api } from '../services/api'; // API Real
+import { listOffers } from '../data/data'; // Importamos las ofertas locales
 
-// Datos estáticos para noticias y categorías visuales (esto está bien dejarlo fijo)
+// Datos estáticos para noticias
 const mainCategoriesSource = [
   { name: 'Accesorios', image: 'Img/Producto_Img/accesorios.png' },
   { name: 'Consolas', image: 'Img/Producto_Img/consolas.png' },
@@ -13,21 +14,37 @@ const mainCategoriesSource = [
 ];
 
 const newsItems = [
-  { id: 1, title: 'Tendencias RGB', image: 'Img/Producto_Img/noticia1.png', summary: 'Lo último en luces.', link: '#' },
-  { id: 2, title: 'E-Sports Chile', image: 'Img/Producto_Img/fakerlol.png', summary: 'Rumbo al mundial.', link: '#' },
-  { id: 3, title: 'PS6 Rumores', image: 'Img/Producto_Img/playstation6.png', summary: '¿Qué se viene?', link: '#' },
+  { 
+    id: 1, 
+    title: 'Tendencias RGB 2025', 
+    image: 'Img/Producto_Img/noticia1.png', 
+    summary: 'Descubre cómo la iluminación inmersiva está cambiando los setups gamers este año con nuevas tecnologías de sincronización.', 
+    link: 'https://www.xataka.com/tag/rgb' 
+  },
+  { 
+    id: 2, 
+    title: 'E-Sports en Chile', 
+    image: 'Img/Producto_Img/fakerlol.png', 
+    summary: 'El equipo nacional se prepara para las clasificatorias mundiales. Conoce a los jugadores que representarán al país.', 
+    link: 'https://www.tarreo.com/esports' 
+  },
+  { 
+    id: 3, 
+    title: 'Rumores de PlayStation 6', 
+    image: 'Img/Producto_Img/playstation6.png', 
+    summary: 'Filtraciones sugieren que la próxima consola de Sony podría llegar antes de lo esperado. ¿Será solo digital?', 
+    link: 'https://vandal.elespanol.com/noticias/ps6' 
+  },
 ];
 
 export default function Home(): JSX.Element {
   const [offers, setOffers] = useState<any[]>([]);
 
-  // Cargar ofertas desde BD
+  // 1. Cargar ofertas desde BD (Dinámicas)
   useEffect(() => {
     const fetchOffers = async () => {
       try {
         const products = await api.getProducts();
-        // Filtramos los que tengan offer == true
-        // (Asegúrate de marcar el checkbox "Oferta" al crear el producto en el Panel)
         setOffers(products.filter((p: any) => p.offer === true));
       } catch (e) {
         console.error(e);
@@ -36,11 +53,16 @@ export default function Home(): JSX.Element {
     fetchOffers();
   }, []);
 
+  // 2. Ofertas Exclusivas (Estáticas del data.ts)
+  // Usamos .slice(0, 4) para asegurar que sean SOLO 4 productos
+  const exclusiveOffers = useMemo(() => listOffers().slice(0, 4), []);
+
   const mainCategories = useMemo(() => mainCategoriesSource.filter(cat => cat.name !== 'Juegos de Mesa'), []);
 
   return (
     <div className="home-page" style={{ color: '#E0E0E0', minHeight: '100vh', paddingBottom: '50px' }}>
       
+      {/* Banner Principal */}
       <div className="jumbotron jumbotron-fluid text-white text-center py-5 mb-5 rounded-3 shadow-lg" 
            style={{ backgroundImage: 'linear-gradient(135deg, #0072ff 0%, #00c6ff 100%)' }}>
         <div className="container">
@@ -52,29 +74,48 @@ export default function Home(): JSX.Element {
         </div>
       </div>
 
-      {/* Noticias (Estáticas) */}
-      <section className="mb-5">
+      {/* 📰 Noticias Gamer (Carrusel Mejorado) */}
+      <section className="mb-5 container">
         <h2 className="text-center mb-4 text-light">📰 Noticias Gamer</h2>
-        <div id="newsCarousel" className="carousel slide" data-bs-ride="carousel">
-            <div className="carousel-inner rounded-3 shadow-lg">
+        <div id="newsCarousel" className="carousel slide shadow-lg rounded-3 overflow-hidden" data-bs-ride="carousel">
+            <div className="carousel-indicators">
+                {newsItems.map((_, index) => (
+                    <button key={index} type="button" data-bs-target="#newsCarousel" data-bs-slide-to={index} className={index === 0 ? "active" : ""} aria-current={index === 0 ? "true" : "false"} aria-label={`Slide ${index + 1}`}></button>
+                ))}
+            </div>
+            <div className="carousel-inner">
                 {newsItems.map((news, index) => (
                     <div key={news.id} className={`carousel-item ${index === 0 ? 'active' : ''}`}>
-                         <div style={{ backgroundImage: `url(${news.image})`, height: 400, backgroundSize: 'cover' }} className="d-flex align-items-end">
-                            <div className="w-100 p-4 bg-dark bg-opacity-75 text-white">
-                                <h5>{news.title}</h5>
+                         {/* Altura aumentada a 500px */}
+                         <div style={{ backgroundImage: `url(${news.image})`, height: '500px', backgroundSize: 'cover', backgroundPosition: 'center' }} className="d-flex align-items-end">
+                            {/* Fondo oscuro degradado para mejor lectura */}
+                            <div className="w-100 p-5 text-white" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0))' }}>
+                                <h3 className="fw-bold">{news.title}</h3>
+                                <p className="fs-5">{news.summary}</p>
+                                <a href={news.link} target="_blank" rel="noopener noreferrer" className="btn btn-primary mt-2">
+                                    Leer nota completa 🔗
+                                </a>
                             </div>
                          </div>
                     </div>
                 ))}
             </div>
+            <button className="carousel-control-prev" type="button" data-bs-target="#newsCarousel" data-bs-slide="prev">
+                <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span className="visually-hidden">Anterior</span>
+            </button>
+            <button className="carousel-control-next" type="button" data-bs-target="#newsCarousel" data-bs-slide="next">
+                <span className="carousel-control-next-icon" aria-hidden="true"></span>
+                <span className="visually-hidden">Siguiente</span>
+            </button>
         </div>
       </section>
 
-      {/* Ofertas Reales de BD */}
+      {/* Ofertas de la Base de Datos */}
       <section className="mb-5">
         <h2 className="text-center mb-4 text-light">⚡ Ofertas de la Base de Datos</h2>
         {offers.length > 0 ? (
-          <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+          <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 px-4">
             {offers.map((product) => (
               <div key={product.id} className="col">
                 <ProductCard product={product} />
@@ -86,13 +127,25 @@ export default function Home(): JSX.Element {
         )}
       </section>
 
+      {/* 🌟 Ofertas Exclusivas (Limitadas a 4) */}
+      <section className="mb-5">
+        <h2 className="text-center mb-4 text-light">🌟 Ofertas Exclusivas</h2>
+        <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 px-4">
+            {exclusiveOffers.map((product) => (
+              <div key={product.id} className="col">
+                <ProductCard product={product} />
+              </div>
+            ))}
+        </div>
+      </section>
+
       {/* Categorías Visuales */}
       <section className="mb-5">
         <h2 className="text-center mb-4 text-light">🎮 Explora por Categoría</h2>
-        <div className="row g-3 justify-content-center"> 
+        <div className="row g-3 justify-content-center px-4"> 
           {mainCategories.map((cat, index) => (
             <div key={index} className="col-6 col-md-4">
-              <NavLink to={`/categorias?cat=${cat.name}`} className="card text-center text-decoration-none shadow-sm bg-dark text-light">
+              <NavLink to={`/categorias?cat=${cat.name}`} className="card text-center text-decoration-none shadow-sm bg-dark text-light border-secondary">
                 <img src={cat.image} className="card-img-top mx-auto mt-3" alt={cat.name} style={{ height: 100, objectFit: 'contain' }} />
                 <div className="card-body"><h5>{cat.name}</h5></div>
               </NavLink>

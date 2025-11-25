@@ -1,6 +1,5 @@
 // src/data/data.ts
 
-// Definición de la interfaz principal para un Producto
 export interface Product {
   id: number;
   name: string;
@@ -12,14 +11,13 @@ export interface Product {
   offerLabel?: string | null;
 }
 
-// Definición de la interfaz para el perfil de usuario (helper)
 export interface UserProfile {
   name: string;
   email: string;
 }
 
-// ====== Catálogo con descripciones añadidas y 4 ofertas (1,3,7,10) ======
 const baseProducts: Product[] = [
+  // --- Productos Originales (IDs 1-10) ---
   {
     id: 1,
     name: 'Catan',
@@ -27,8 +25,7 @@ const baseProducts: Product[] = [
     category: 'Juegos de Mesa',
     image: 'img/Producto_img/Catan.png',
     offer: true,
-    description:
-      'Clásico de estrategia y comercio para 3–4 jugadores; partidas de 60–90 min con tablero modular y alta rejugabilidad.'
+    description: 'Clásico de estrategia y comercio para 3–4 jugadores.'
   },
   {
     id: 2,
@@ -37,8 +34,7 @@ const baseProducts: Product[] = [
     category: 'Juegos de Mesa',
     image: 'img/Producto_img/Carcassonne.png',
     offer: false,
-    description:
-      'Juego de colocación de losetas y meeples: construye ciudades y caminos con reglas simples pero gran profundidad estratégica.'
+    description: 'Juego de colocación de losetas y meeples.'
   },
   {
     id: 3,
@@ -47,28 +43,25 @@ const baseProducts: Product[] = [
     category: 'Accesorios',
     image: 'img/Producto_img/Auri.png',
     offer: true,
-    description:
-      'Headset con micrófono y cancelación de ruido; cómodo para sesiones largas y sonido claro para chat de voz y juego competitivo.'
+    description: 'Headset con micrófono y cancelación de ruido.'
   },
   {
     id: 4,
-    name: 'Razer Deathadder Viper Standard Edition 6400',
+    name: 'Razer Deathadder Viper',
     price: 29990,
     category: 'Accesorios',
     image: 'img/Producto_img/MouseGamer.png',
     offer: false,
-    description:
-      'Sensor preciso y switches rápidos; ideal para shooters y MOBAs, con DPI ajustable y botones programables para mejor control.'
+    description: 'Sensor preciso y switches rápidos.'
   },
   {
     id: 5,
-    name: 'Mouse Pad gamer Logitech G640 de tela',
+    name: 'Mouse Pad Logitech G640',
     price: 12990,
     category: 'Accesorios',
     image: 'img/Producto_img/Mousepad.png',
     offer: false,
-    description:
-      'Superficie de deslizamiento uniforme con base antideslizante y bordes reforzados; mejora la precisión del mouse en cada movimiento.'
+    description: 'Superficie de deslizamiento uniforme.'
   },
   {
     id: 6,
@@ -77,8 +70,7 @@ const baseProducts: Product[] = [
     category: 'Sillas',
     image: 'img/Producto_img/SillaGamer.png',
     offer: false,
-    description:
-      'Silla ergonómica con soporte lumbar y reclinación; materiales duraderos pensados para largas horas de juego, estudio o trabajo.'
+    description: 'Silla ergonómica con soporte lumbar.'
   },
   {
     id: 7,
@@ -87,18 +79,16 @@ const baseProducts: Product[] = [
     category: 'Consolas',
     image: 'img/Producto_img/Play5.png',
     offer: true,
-    description:
-      'Consola de nueva generación con SSD ultrarrápido, gráficos 4K y experiencia inmersiva con control háptico y audio 3D.'
+    description: 'Consola de nueva generación.'
   },
   {
     id: 8,
-    name: 'Joystick Microsoft Xbox Series',
+    name: 'Joystick Xbox Series',
     price: 54990,
     category: 'Consolas',
     image: 'img/Producto_img/Controlador.png',
     offer: false,
-    description:
-      'Mando inalámbrico con gatillos adaptativos y vibración háptica; conexión estable y batería de larga duración.'
+    description: 'Mando inalámbrico con gatillos adaptativos.'
   },
   {
     id: 9,
@@ -107,8 +97,7 @@ const baseProducts: Product[] = [
     category: 'PCs',
     image: 'img/Producto_img/PCGamer.png',
     offer: false,
-    description:
-      'Equipo listo para jugar en alto rendimiento; ideal para 1080p/1440p con multitarea fluida en gaming y creación de contenido.'
+    description: 'Equipo listo para jugar en alto rendimiento.'
   },
   {
     id: 10,
@@ -117,15 +106,56 @@ const baseProducts: Product[] = [
     category: 'Ropa',
     image: 'img/Producto_img/Polera.png',
     offer: true,
-    description:
-      'Polera temática gamer de tela suave y respirable; calce cómodo para uso diario y fanáticos de Level-Up.'
+    description: 'Polera temática gamer.'
+  },
+
+  // --- TUS 4 OFERTAS EXCLUSIVAS NUEVAS (IDs 11-14) ---
+  {
+    id: 11,
+    name: 'Silla Gamer Cougar Armor',
+    price: 129990,
+    category: 'Sillas',
+    image: 'Img/Producto_Img/SillaGamer.png',
+    offer: true,
+    description: 'Comodidad ergonómica para largas sesiones.',
+    offerLabel: 'Liquidación'
+  },
+  {
+    id: 12,
+    name: 'Mouse Pad Logitech G640',
+    price: 12990,
+    category: 'Accesorios',
+    image: 'Img/Producto_Img/MousePad.png',
+    offer: true,
+    description: 'Superficie de tela para control total.',
+    offerLabel: '2x1'
+  },
+  {
+    id: 13,
+    name: 'Carcassonne Edición 20 Aniv.',
+    price: 34990,
+    category: 'Juegos de Mesa',
+    image: 'Img/Producto_Img/Carcassonne.png',
+    offer: true,
+    description: 'El clásico juego de estrategia.',
+    offerLabel: '-20%'
+  },
+  {
+    id: 14,
+    name: 'Joystick Xbox Series Carbon',
+    price: 54990,
+    category: 'Consolas',
+    image: 'Img/Producto_Img/Controlador.png',
+    offer: true,
+    description: 'Compatible con PC, Android y Xbox.',
+    offerLabel: 'Envío Gratis'
   }
 ];
 
-// ====== Construcción del arreglo final de productos ======
-const products: Product[] = baseProducts.slice(); // sin mutaciones posteriores
+// Inicialización
+const products: Product[] = baseProducts.slice(); 
 
-// ====== API de lectura de productos ======
+// Funciones API
 export function listProducts(): Product[] { return products; }
 export function listOffers(): Product[] { return products.filter(p => p.offer === true); }
 export function listProductsByCategory(category: string | null | undefined): Product[] {
@@ -137,7 +167,7 @@ export function listCategories(): string[] {
   return ['Todo', ...(cats as string[])];
 }
 
-// ====== Carrito (por id) ======
+// Lógica Carrito
 const CART_KEY = 'lvlup_cart';
 
 function loadCart(): number[] {
@@ -146,13 +176,10 @@ function loadCart(): number[] {
     return raw ? (JSON.parse(raw) as number[]) : [];
   } catch { return []; }
 }
-
 function saveCart(list: number[]): void {
   localStorage.setItem(CART_KEY, JSON.stringify(list));
-  // 🔔 NUEVO: Despachar evento para que otros componentes (Carrito) sepan que hubo cambios
   window.dispatchEvent(new Event('cart:change'));
 }
-
 export function getCart(): Product[] {
   const ids: number[] = loadCart();
   const prods: Product[] = [];
@@ -162,15 +189,12 @@ export function getCart(): Product[] {
   }
   return prods;
 }
-
 export function addToCart(id: number): Product[] {
   const ids: number[] = loadCart();
   ids.push(id);
   saveCart(ids);
   return getCart();
 }
-
-// Elimina UNA unidad del producto (para el botón "-")
 export function removeFromCart(id: number): Product[] {
   const ids: number[] = loadCart();
   const i = ids.indexOf(id);
@@ -178,21 +202,18 @@ export function removeFromCart(id: number): Product[] {
   saveCart(ids);
   return getCart();
 }
-
-// 🔔 NUEVO: Elimina TODAS las unidades de un producto
 export function removeAllFromCart(id: number): Product[] {
   const ids: number[] = loadCart();
   const newIds = ids.filter(itemId => itemId !== id);
   saveCart(newIds);
   return getCart();
 }
-
 export function clearCart(): Product[] {
   saveCart([]);
   return [];
 }
 
-// ====== CRUD productos (en memoria) ======
+// CRUD Helpers
 export function createProduct(newProduct: Omit<Product, 'id'>): Product {
   const nextId = (products.reduce((m, p) => Math.max(m, p.id), 0) || 0) + 1;
   const product: Product = { id: nextId, ...newProduct };
@@ -210,12 +231,10 @@ export function deleteProduct(id: number): boolean {
   return true;
 }
 
-// ====== Otros helpers ======
 export function getUserProfile(): UserProfile { return { name: 'Invitado', email: '' }; }
 export function saveOrder(order: any): boolean {
     console.log('Pedido guardado:', order);
     return true;
 }
 
-// ====== Exports ======
 export { products as default, products };
