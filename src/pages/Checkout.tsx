@@ -1,49 +1,64 @@
 // src/pages/Checkout.tsx
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CheckoutForm from '../components/CheckoutForm'; // Importar el componente tipado
+import CheckoutForm from '../components/CheckoutForm';
+import { api } from '../services/api'; // Importamos la API real
 
-// Este componente utiliza la misma lógica de carrito que Carrito.tsx,
-// por lo que necesitamos replicar la obtención de datos para el total.
-interface CartItem {
+interface Product {
   id: number;
   price: number;
   offer: boolean;
-}
-const STORAGE_KEY = 'cart_v1';
-const DISCOUNT = 0.15;
-
-function readCart(): CartItem[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    // Solo necesitamos id, price, y offer para calcular el total
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
-  } catch { return []; }
-}
-function unitPrice(product: CartItem): number {
-  const base = Number(product.price) || 0;
-  return product.offer ? Math.round(base * (1 - DISCOUNT)) : base;
+  name: string;
 }
 
 export default function Checkout(): JSX.Element {
-  const cartItems: CartItem[] = useMemo(() => readCart(), []);
-  
-  // Cálculo de totales
-  const totals = useMemo(() => {
-    let discounted = 0;
-    for (const item of cartItems) {
-      discounted += unitPrice(item);
-    }
-    return { discounted, count: cartItems.length };
-  }, [cartItems]);
-  
   const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [cartIds, setCartIds] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 1. Cargamos productos de la Base de Datos y los IDs del carrito correcto
+    const loadData = async () => {
+      try {
+        const apiProds = await api.getProducts();
+        const storedIds = JSON.parse(localStorage.getItem('lvlup_cart') || '[]');
+        setProducts(apiProds);
+        setCartIds(storedIds);
+      } catch (e) {
+        console.error("Error cargando datos de checkout", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+  
+  // 2. Calculamos el total cruzando los IDs del carrito con los precios de la BD
+  const totals = useMemo(() => {
+    let total = 0;
+    let count = 0;
+
+    cartIds.forEach(id => {
+      const product = products.find(p => p.id === id);
+      if (product) {
+        // Aplicamos descuento si tiene oferta (lógica simple)
+        const price = product.offer ? Math.round(product.price * 0.85) : product.price;
+        total += price;
+        count++;
+      }
+    });
+
+    return { total, count };
+  }, [products, cartIds]);
+  
+  if (loading) return <div className="text-center py-5">Cargando...</div>;
 
   if (totals.count === 0) {
     return (
       <div className="container py-4 text-center">
         <h2>Tu carrito está vacío.</h2>
-        <p>Añade productos para continuar con la compra.</p>
+        <p>Añade productos para continuar.</p>
         <button className="btn btn-primary" onClick={() => navigate('/categorias')}>Ir al Catálogo</button>
       </div>
     );
@@ -53,8 +68,9 @@ export default function Checkout(): JSX.Element {
     <div className="container py-4">
       <div className="row">
         <div className="col-lg-8">
+          {/* Pasamos el total calculado real al formulario */}
           <CheckoutForm 
-            total={totals.discounted} 
+            total={totals.total} 
             itemsCount={totals.count} 
           />
         </div>
@@ -67,7 +83,7 @@ export default function Checkout(): JSX.Element {
             </div>
             <div className="d-flex justify-content-between fw-bold pt-2 border-top">
                 <span>Total a Pagar:</span>
-                <span className="text-success">${totals.discounted.toLocaleString('es-CL')}</span>
+                <span className="text-success">${totals.total.toLocaleString('es-CL')}</span>
             </div>
           </div>
         </div>

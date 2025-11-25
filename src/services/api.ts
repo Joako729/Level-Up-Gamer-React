@@ -26,7 +26,7 @@ export const api = {
     return res.json();
   },
 
-  // --- PRODUCTOS ---
+  // --- PRODUCTOS (Necesarios para AdminPanel) ---
   getProducts: async () => {
     const res = await fetch(`${API_URL}/productos`, { headers: getAuthHeaders() });
     if (!res.ok) return [];
@@ -73,24 +73,52 @@ export const api = {
     return res.json();
   },
 
-  // --- PEDIDOS ---
+  // --- PEDIDOS (Versión con LOGS para arreglar el error) ---
   createOrder: async (orderData: any) => {
+    console.log("📡 Enviando pedido al backend:", orderData);
     const res = await fetch(`${API_URL}/pedidos`, {
       method: "POST", headers: getAuthHeaders(), body: JSON.stringify(orderData)
     });
-    if (!res.ok) throw new Error("Error pedido");
-    return res.json();
+    
+    // Si falla, leemos el mensaje de error del backend
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ Error al crear pedido (Backend dice):", res.status, errorText);
+        throw new Error("Error al guardar pedido: " + errorText);
+    }
+    
+    const data = await res.json();
+    console.log("✅ Pedido guardado con éxito:", data);
+    return data;
   },
+
   // Admin ve todos
   getAllOrders: async () => {
+    console.log("📡 Buscando TODOS los pedidos (Admin)...");
     const res = await fetch(`${API_URL}/pedidos`, { headers: getAuthHeaders() });
-    if (!res.ok) return [];
-    return res.json();
+    
+    if (!res.ok) {
+        console.error("❌ Error al obtener pedidos admin:", res.status, await res.text());
+        return []; // Evita romper la app, pero avisa en consola
+    }
+    
+    const data = await res.json();
+    console.log("✅ Pedidos Admin recibidos:", data);
+    return data;
   },
+
   // Cliente ve los suyos
   getMyOrders: async () => {
+    console.log("📡 Buscando MIS pedidos...");
     const res = await fetch(`${API_URL}/pedidos/mis-pedidos`, { headers: getAuthHeaders() });
-    if (!res.ok) return [];
-    return res.json();
+    
+    if (!res.ok) {
+        console.error("❌ Error al obtener mis pedidos:", res.status, await res.text());
+        return [];
+    }
+    
+    const data = await res.json();
+    console.log("✅ Mis pedidos recibidos:", data);
+    return data;
   }
 };
