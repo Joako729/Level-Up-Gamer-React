@@ -6,10 +6,13 @@ import { getCart } from '../data/data';
 export default function Navbar(): JSX.Element {
   const navigate = useNavigate();
   
+  // Estado para el buscador
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
   const [cartCount, setCartCount] = useState<number>(0);
   const [isLogged, setIsLogged] = useState<boolean>(false);
   const [userName, setUserName] = useState<string>('');
-  const [isAdmin, setIsAdmin] = useState<boolean>(false); // Nuevo estado Admin
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const refreshStatus = () => {
@@ -27,7 +30,7 @@ export default function Navbar(): JSX.Element {
 
     refreshStatus();
     window.addEventListener('cart:change', refreshStatus);
-    window.addEventListener('storage', refreshStatus); // Escucha cambios de Login/Logout
+    window.addEventListener('storage', refreshStatus);
 
     return () => {
       window.removeEventListener('cart:change', refreshStatus);
@@ -39,6 +42,16 @@ export default function Navbar(): JSX.Element {
     localStorage.clear();
     window.dispatchEvent(new Event('storage'));
     navigate('/login');
+  };
+
+  // Función para manejar el envío del formulario de búsqueda
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault(); // Evita que la página se recargue
+    if (searchTerm.trim()) {
+      // Redirige a Categorías con el parámetro de consulta 'q'
+      navigate(`/categorias?q=${encodeURIComponent(searchTerm)}`);
+      setSearchTerm(''); // Opcional: limpiar el input después de buscar
+    }
   };
 
   return (
@@ -53,6 +66,7 @@ export default function Navbar(): JSX.Element {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarContent">
+          {/* Menú Izquierdo */}
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item"><NavLink className="nav-link" to="/">Inicio</NavLink></li>
             <li className="nav-item"><NavLink className="nav-link" to="/categorias">Categorías</NavLink></li>
@@ -61,7 +75,25 @@ export default function Navbar(): JSX.Element {
             )}
           </ul>
 
+          {/* Sección Derecha: Buscador + Carrito + Login/User */}
           <div className="d-flex align-items-center gap-2">
+            
+            {/* --- NUEVO: Formulario de Búsqueda --- */}
+            <form className="d-flex" role="search" onSubmit={handleSearch}>
+              <input
+                className="form-control form-control-sm me-2"
+                type="search"
+                placeholder="Buscar productos..."
+                aria-label="Buscar"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button className="btn btn-sm btn-outline-light" type="submit">
+                🔍
+              </button>
+            </form>
+            {/* -------------------------------------- */}
+
             <NavLink to="/carrito" className="btn btn-outline-light position-relative">
               🛒 {cartCount > 0 && <span className="badge bg-danger ms-1">{cartCount}</span>}
             </NavLink>
