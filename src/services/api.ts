@@ -2,7 +2,6 @@
 
 export const API_URL = "http://localhost:8080/api";
 
-// Helper para obtener el token guardado
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return {
@@ -12,8 +11,8 @@ const getAuthHeaders = () => {
 };
 
 export const api = {
-  // --- AUTENTICACIÓN ---
-  login: async (credentials: { email: string; password: string }) => {
+  // --- AUTH ---
+  login: async (credentials: any) => {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -38,7 +37,7 @@ export const api = {
     const res = await fetch(`${API_URL}/productos`, { headers: getAuthHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
-    // Mapeamos de Backend (Español) a Frontend (Inglés)
+    // Mapeo Backend -> Frontend
     return data.map((p: any) => ({
       id: p.id,
       name: p.nombre,
@@ -47,19 +46,19 @@ export const api = {
       description: p.descripcion,
       image: p.imagen,
       stock: p.stock,
-      offer: false // El backend básico no tenía oferta, lo dejamos false por defecto
+      offer: p.offer || false // Asumiendo que agregaste oferta, si no, false
     }));
   },
 
   createProduct: async (product: any) => {
-    // Mapeamos de Frontend a Backend
+    // Mapeo Frontend -> Backend
     const backendProduct = {
       nombre: product.name,
       precio: product.price,
       categoria: product.category,
       descripcion: product.description,
       imagen: product.image,
-      stock: 10 // Valor por defecto
+      stock: 10
     };
 
     const res = await fetch(`${API_URL}/productos`, {
@@ -67,7 +66,27 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify(backendProduct),
     });
-    if (!res.ok) throw new Error("Error al crear producto (¿Eres Admin?)");
+    if (!res.ok) throw new Error("Error al crear producto");
+    return res.json();
+  },
+
+  // --- NUEVO: FUNCIÓN PARA ACTUALIZAR ---
+  updateProduct: async (id: number, product: any) => {
+    const backendProduct = {
+      nombre: product.name,
+      precio: product.price,
+      categoria: product.category,
+      descripcion: product.description,
+      imagen: product.image,
+      stock: 10
+    };
+
+    const res = await fetch(`${API_URL}/productos/${id}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(backendProduct),
+    });
+    if (!res.ok) throw new Error("Error al actualizar");
     return res.json();
   },
 
