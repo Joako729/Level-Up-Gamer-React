@@ -1,36 +1,18 @@
 // src/pages/Carrito.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // <--- IMPORTANTE
+import { useNavigate } from 'react-router-dom';
 import { 
-  Product, 
-  getCart, 
-  addToCart, 
-  removeFromCart, 
-  removeAllFromCart, 
-  clearCart 
+  Product, getCart, addToCart, removeFromCart, removeAllFromCart, clearCart 
 } from '../data/data';
 
-interface GroupedCartItem {
-  product: Product;
-  qty: number;
-}
-
-interface CartTotals {
-  original: number;
-  discounted: number;
-  savings: number;
-}
+interface GroupedCartItem { product: Product; qty: number; }
+interface CartTotals { original: number; discounted: number; savings: number; }
 
 const DISCOUNT = 0.15;
 
 function formatCLP(v: number | string): string {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    maximumFractionDigits: 0
-  }).format(Number(v) || 0);
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Number(v) || 0);
 }
-
 function groupCart(list: Product[]): GroupedCartItem[] {
   const map = new Map<number, GroupedCartItem>();
   for (const p of list) {
@@ -40,25 +22,21 @@ function groupCart(list: Product[]): GroupedCartItem[] {
   }
   return Array.from(map.values());
 }
-
 function unitPrice(product: Product): number {
   const base = Number(product.price) || 0;
   return product.offer ? Math.round(base * (1 - DISCOUNT)) : base;
 }
 
 export default function Carrito(): JSX.Element {
-  const navigate = useNavigate(); // Hook para navegar
+  const navigate = useNavigate();
   const [items, setItems] = useState<Product[]>(() => getCart());
-
   const rows: GroupedCartItem[] = useMemo(() => groupCart(items), [items]);
 
   const totals: CartTotals = useMemo(() => {
-    let original: number = 0;
-    let discounted: number = 0;
-    let savings: number = 0;
+    let original = 0, discounted = 0, savings = 0;
     for (const { product, qty } of rows) {
-      const base: number = Number(product.price) || 0;
-      const unit: number = unitPrice(product);
+      const base = Number(product.price) || 0;
+      const unit = unitPrice(product);
       original += base * qty;
       discounted += unit * qty;
       savings += (base - unit) * qty;
@@ -78,21 +56,18 @@ export default function Carrito(): JSX.Element {
   const handleRemoveAll = (id: number) => removeAllFromCart(id);
   const handleClear = () => clearCart();
 
-  // --- NUEVA LÓGICA DE PAGO ---
-  const handleGoToCheckout = () => {
-    // En lugar de abrir un formulario falso aquí, vamos a la página real
-    navigate('/checkout');
-  };
+  const handleGoToCheckout = () => { navigate('/checkout'); };
 
-  // VISTA DE CARRITO VACÍO
+  // --- VISTA CARRITO VACÍO (Color corregido a #212529) ---
   if (!rows.length) {
     return (
       <div className="container py-5 text-center">
-        <div className="py-5 bg-dark rounded-3 border border-secondary shadow">
+        {/* Usamos el mismo estilo y color de fondo que la tabla del carrito */}
+        <div className="py-5 rounded-3 border border-secondary shadow text-white" style={{ backgroundColor: '#212529' }}>
             <div className="mb-3 text-white-50" style={{ fontSize: '4rem' }}>🛒</div>
-            <h3 className="text-white">Tu carrito está vacío</h3>
-            <p className="text-white-50 mt-2">¡Añade productos para continuar!</p>
-            <button className="btn btn-primary mt-3" onClick={() => navigate('/categorias')}>
+            <h3 className="fw-bold text-white">Tu carrito está vacío</h3>
+            <p className="mt-2 text-white-50">¡Añade productos para continuar!</p>
+            <button className="btn btn-primary mt-3 fw-bold shadow" onClick={() => navigate('/categorias')}>
               Ir al Catálogo
             </button>
         </div>
@@ -104,11 +79,10 @@ export default function Carrito(): JSX.Element {
     <div className="container py-4">
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h2 className="mb-0 text-white fw-bold">Carrito de Compras</h2>
-        <button className="btn btn-outline-danger btn-sm" onClick={handleClear}>
-          Vaciar carrito
-        </button>
+        <button className="btn btn-outline-danger btn-sm" onClick={handleClear}>Vaciar carrito</button>
       </div>
 
+      {/* Tabla con el mismo color oscuro #212529 */}
       <div className="table-responsive rounded-3 shadow-sm border border-secondary" style={{ backgroundColor: '#212529' }}>
         <table className="table table-dark table-hover align-middle mb-0">
           <thead>
@@ -125,12 +99,10 @@ export default function Carrito(): JSX.Element {
               const base = Number(product.price) || 0;
               const unit = unitPrice(product);
               const subTotal = unit * qty;
-
               return (
                 <tr key={product.id}>
                   <td className="p-2">
-                    <img
-                       src={product.image?.startsWith('http') ? product.image : `/${String(product.image || '').replace(/^\/+/, '')}`}
+                    <img src={product.image?.startsWith('http') ? product.image : `/${String(product.image || '').replace(/^\/+/, '')}`}
                       alt={product.name}
                       style={{ width: 64, height: 64, objectFit: 'contain', backgroundColor: '#fff', borderRadius: 4 }}
                     />
@@ -152,13 +124,9 @@ export default function Carrito(): JSX.Element {
                         <div className="text-muted text-decoration-line-through small">{formatCLP(base)}</div>
                         <div className="fw-bold text-white">{formatCLP(unit)}</div>
                       </>
-                    ) : (
-                      <div className="fw-bold text-white">{formatCLP(base)}</div>
-                    )}
+                    ) : (<div className="fw-bold text-white">{formatCLP(base)}</div>)}
                   </td>
-                  <td className="text-end fw-bold text-white">
-                    {formatCLP(subTotal)}
-                  </td>
+                  <td className="text-end fw-bold text-white">{formatCLP(subTotal)}</td>
                 </tr>
               );
             })}
@@ -172,12 +140,8 @@ export default function Carrito(): JSX.Element {
           </tfoot>
         </table>
       </div>
-
       <div className="d-flex justify-content-end mt-4">
-        {/* ESTE BOTÓN AHORA LLEVA AL CHECKOUT REAL */}
-        <button className="btn btn-success btn-lg px-5 fw-bold" onClick={handleGoToCheckout}>
-          Ir a Pagar
-        </button>
+        <button className="btn btn-success btn-lg px-5 fw-bold" onClick={handleGoToCheckout}>Ir a Pagar</button>
       </div>
     </div>
   );
