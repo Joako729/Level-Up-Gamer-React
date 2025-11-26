@@ -1,7 +1,7 @@
 // src/components/Navbar.tsx
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { getCart } from '../data/data';
+import { getCartIds } from '../data/data'; // 🟢 Importamos la nueva función
 
 export default function Navbar(): JSX.Element {
   const navigate = useNavigate();
@@ -13,8 +13,10 @@ export default function Navbar(): JSX.Element {
 
   useEffect(() => {
     const refreshStatus = () => {
-      const items = getCart();
-      setCartCount(items.length);
+      // 🟢 CAMBIO CLAVE: Contamos los IDs directamente
+      const ids = getCartIds();
+      setCartCount(ids.length);
+
       const token = localStorage.getItem('token');
       const role = localStorage.getItem('user_role');
       const name = localStorage.getItem('user_name');
@@ -23,6 +25,8 @@ export default function Navbar(): JSX.Element {
       setUserName(name || '');
     };
     refreshStatus();
+    
+    // Escuchamos eventos de cambio en el carrito y storage
     window.addEventListener('cart:change', refreshStatus);
     window.addEventListener('storage', refreshStatus);
     return () => {

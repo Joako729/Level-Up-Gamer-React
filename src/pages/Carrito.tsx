@@ -2,35 +2,85 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Product, getCart, addToCart, removeFromCart, removeAllFromCart, clearCart 
+  getCartIds, addToCart, removeFromCart, removeAllFromCart, clearCart, 
+  activarOfertasFrontend // 🟢 IMPORTANTE
 } from '../data/data';
+import { api } from '../services/api';
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+  offer: boolean;
+  description: string;
+}
 
 interface GroupedCartItem { product: Product; qty: number; }
 interface CartTotals { original: number; discounted: number; savings: number; }
 
-const DISCOUNT = 0.15;
+const DISCOUNT = 0.15; // 15% de descuento general
 
 function formatCLP(v: number | string): string {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Number(v) || 0);
 }
-function groupCart(list: Product[]): GroupedCartItem[] {
-  const map = new Map<number, GroupedCartItem>();
-  for (const p of list) {
-    const k = p.id;
-    if (!map.has(k)) map.set(k, { product: p, qty: 0 });
-    map.get(k)!.qty += 1;
-  }
-  return Array.from(map.values());
-}
+
+// Calcula el precio unitario considerando si tiene oferta
 function unitPrice(product: Product): number {
   const base = Number(product.price) || 0;
+  // Si el producto tiene oferta activada, aplicamos el descuento matemático
   return product.offer ? Math.round(base * (1 - DISCOUNT)) : base;
 }
 
 export default function Carrito(): JSX.Element {
   const navigate = useNavigate();
-  const [items, setItems] = useState<Product[]>(() => getCart());
-  const rows: GroupedCartItem[] = useMemo(() => groupCart(items), [items]);
+  const [items, setItems] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refreshCart = async () => {
+    const ids = getCartIds();
+    if (ids.length === 0) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Traemos productos de la API (vienen sin oferta marcada)
+      const rawProducts = await api.getProducts();
+
+      // 2. 🟢 APLICAMOS LA MAGIA: Activamos las ofertas en el frontend
+      const allProducts = activarOfertasFrontend(rawProducts);
+      
+      // 3. Filtramos los productos que están en el carrito
+      const cartProducts = ids.map(id => allProducts.find((p: Product) => p.id === id)).filter(Boolean) as Product[];
+
+      setItems(cartProducts);
+    } catch (error) {
+      console.error("Error al cargar carrito:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshCart();
+    const h = () => refreshCart();
+    window.addEventListener('cart:change', h);
+    return () => window.removeEventListener('cart:change', h);
+  }, []);
+
+  // Agrupación y Cálculos (Igual que antes)
+  const rows: GroupedCartItem[] = useMemo(() => {
+    const map = new Map<number, GroupedCartItem>();
+    for (const p of items) {
+      const k = p.id;
+      if (!map.has(k)) map.set(k, { product: p, qty: 0 });
+      map.get(k)!.qty += 1;
+    }
+    return Array.from(map.values());
+  }, [items]);
 
   const totals: CartTotals = useMemo(() => {
     let original = 0, discounted = 0, savings = 0;
@@ -44,32 +94,20 @@ export default function Carrito(): JSX.Element {
     return { original, discounted, savings };
   }, [rows]);
 
-  useEffect(() => {
-    const refresh = () => setItems(getCart());
-    window.addEventListener('cart:change', refresh as EventListener);
-    refresh();
-    return () => window.removeEventListener('cart:change', refresh as EventListener);
-  }, []);
-
   const handleRemoveOne = (id: number) => removeFromCart(id);
   const handleAddOne = (id: number) => addToCart(id);
-  const handleRemoveAll = (id: number) => removeAllFromCart(id);
   const handleClear = () => clearCart();
+  const handleGoToCheckout = () => navigate('/checkout');
 
-  const handleGoToCheckout = () => { navigate('/checkout'); };
+  if (loading && items.length === 0) return <div className="container py-5 text-center text-white"><h3>Cargando...</h3></div>;
 
-  // --- VISTA CARRITO VACÍO (Color corregido a #212529) ---
   if (!rows.length) {
     return (
       <div className="container py-5 text-center">
-        {/* Usamos el mismo estilo y color de fondo que la tabla del carrito */}
         <div className="py-5 rounded-3 border border-secondary shadow text-white" style={{ backgroundColor: '#212529' }}>
             <div className="mb-3 text-white-50" style={{ fontSize: '4rem' }}>🛒</div>
             <h3 className="fw-bold text-white">Tu carrito está vacío</h3>
-            <p className="mt-2 text-white-50">¡Añade productos para continuar!</p>
-            <button className="btn btn-primary mt-3 fw-bold shadow" onClick={() => navigate('/categorias')}>
-              Ir al Catálogo
-            </button>
+            <button className="btn btn-primary mt-3 fw-bold shadow" onClick={() => navigate('/categorias')}>Ir al Catálogo</button>
         </div>
       </div>
     );
@@ -82,7 +120,6 @@ export default function Carrito(): JSX.Element {
         <button className="btn btn-outline-danger btn-sm" onClick={handleClear}>Vaciar carrito</button>
       </div>
 
-      {/* Tabla con el mismo color oscuro #212529 */}
       <div className="table-responsive rounded-3 shadow-sm border border-secondary" style={{ backgroundColor: '#212529' }}>
         <table className="table table-dark table-hover align-middle mb-0">
           <thead>
@@ -102,10 +139,7 @@ export default function Carrito(): JSX.Element {
               return (
                 <tr key={product.id}>
                   <td className="p-2">
-                    <img src={product.image?.startsWith('http') ? product.image : `/${String(product.image || '').replace(/^\/+/, '')}`}
-                      alt={product.name}
-                      style={{ width: 64, height: 64, objectFit: 'contain', backgroundColor: '#fff', borderRadius: 4 }}
-                    />
+                    <img src={product.image} alt={product.name} style={{ width: 64, height: 64, objectFit: 'contain', backgroundColor: '#fff', borderRadius: 4 }} />
                   </td>
                   <td>
                     <div className="fw-semibold text-white">{product.name}</div>
