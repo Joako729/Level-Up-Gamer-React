@@ -1,14 +1,19 @@
-// src/components/CheckoutForm.tsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api'; 
-import { UserProfile } from '../data/data';
+
+interface UserProfile { name: string; email: string; }
 
 interface FormData {
   name: string; email: string; address: string; city: string; zip: string; paymentMethod: string;
 }
-interface CheckoutFormProps { total: number; itemsCount: number; }
-interface CartItem { id: number; price: number; offer: boolean; }
+
+// 🟢 INTERFAZ ACTUALIZADA: Ahora incluye ID para buscar el precio exacto
+interface CheckoutFormProps { 
+    total: number; 
+    itemsCount: number; 
+    cartDetails: { id: number; name: string; finalPrice: number }[]; 
+}
 
 const formatCLP = (v: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(v);
 
@@ -19,28 +24,21 @@ function getLoggedUserProfile(): UserProfile {
     };
 }
 
-export default function CheckoutForm({ total, itemsCount }: CheckoutFormProps): JSX.Element {
+export default function CheckoutForm({ total, itemsCount, cartDetails }: CheckoutFormProps): JSX.Element {
   const navigate = useNavigate();
   const profile = getLoggedUserProfile();
-
-  const [formData, setFormData] = useState<FormData>({
-    name: profile.name, email: profile.email, address: '', city: '', zip: '', paymentMethod: ''
-  });
-  
+  const [formData, setFormData] = useState<FormData>({ name: profile.name, email: profile.email, address: '', city: '', zip: '', paymentMethod: '' });
   const [isLogged] = useState<boolean>(!!localStorage.getItem('token')); 
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (profile.name || profile.email) {
-        setFormData(prev => ({ ...prev, name: profile.name, email: profile.email }));
-    }
+    if (profile.name) setFormData(prev => ({ ...prev, name: profile.name, email: profile.email }));
   }, [profile.name, profile.email]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,38 +46,32 @@ export default function CheckoutForm({ total, itemsCount }: CheckoutFormProps): 
     setError('');
     setLoading(true);
 
-    if (!isLogged) {
-        setError('Debes iniciar sesión.');
-        setLoading(false);
-        return;
-    }
-
-    if (!formData.address || !formData.city || !formData.paymentMethod) {
-      setError('Rellena los campos obligatorios.');
-      setLoading(false);
-      return;
-    }
+    if (!isLogged) { setError('Debes iniciar sesión para comprar.'); setLoading(false); return; }
+    if (!formData.address || !formData.city || !formData.paymentMethod) { setError('Por favor completa todos los campos de envío.'); setLoading(false); return; }
 
     const userId = Number(localStorage.getItem('user_id'));
-    if (!userId) {
-        setError('Error de sesión. Vuelve a ingresar.');
-        setLoading(false);
-        return;
-    }
+    if (!userId) { setError('Error de sesión.'); setLoading(false); return; }
 
-    // PREPARAR DATOS
+    // 🟢 LÓGICA CORREGIDA PARA ENVIAR EL PRECIO CON DESCUENTO
     const cartIds: number[] = JSON.parse(localStorage.getItem('lvlup_cart') || '[]');
     const productMap = new Map<number, number>();
+    
+    // Contamos cantidades
     cartIds.forEach(id => {
-        const currentQty = productMap.get(id) || 0;
-        productMap.set(id, currentQty + 1);
+        productMap.set(id, (productMap.get(id) || 0) + 1);
     });
 
-    const productosParaEnviar = Array.from(productMap.entries()).map(([id, qty]) => ({
-        productoId: id,
-        cantidad: qty,
-        precioUnitario: 0 
-    }));
+    const productosParaEnviar = Array.from(productMap.entries()).map(([id, qty]) => {
+        // Buscamos el precio CON DESCUENTO en los detalles que nos pasó el componente padre
+        const itemInfo = cartDetails.find(d => d.id === id);
+        const unitPrice = itemInfo ? itemInfo.finalPrice : 0;
+
+        return {
+            productoId: id,
+            cantidad: qty,
+            precioUnitario: unitPrice // Enviamos el precio rebajado para que quede registrado
+        };
+    });
 
     const orderPayload = {
         usuarioId: userId,
@@ -88,77 +80,80 @@ export default function CheckoutForm({ total, itemsCount }: CheckoutFormProps): 
     };
 
     try {
-        console.log("📡 Enviando...", orderPayload);
         await api.createOrder(orderPayload);
         
         localStorage.removeItem('lvlup_cart'); 
         window.dispatchEvent(new Event('cart:change')); 
-        navigate('/compra-exitosa');
+        
+        // Enviamos el resumen a la pantalla de éxito
+        navigate('/compra-exitosa', { 
+            state: { 
+                summary: {
+                    total: total,
+                    items: cartDetails,
+                    customer: formData.name,
+                    date: new Date().toLocaleDateString()
+                }
+            } 
+        });
         
     } catch (err: any) {
         console.error(err);
-        setError('Error al procesar: ' + (err.message || 'Revisa la consola'));
+        setError('Error al procesar el pedido.');
     } finally {
         setLoading(false);
     }
   };
 
-  // --- ESTILOS INPUTS ---
-  const inputClass = "form-control bg-secondary text-white border-secondary";
-  const selectClass = "form-select bg-secondary text-white border-secondary";
-
   return (
-    // FONDO OSCURO (#212529) y TEXTO BLANCO
     <div className="card shadow-lg p-4 border-secondary" style={{ backgroundColor: '#212529', color: '#fff' }}>
-      <h3 className="card-title mb-4 border-bottom border-secondary pb-2">Finalizar Compra</h3>
-      
-      {!isLogged && <div className="alert alert-warning">Inicia sesión para continuar.</div>}
-
-      <form onSubmit={handleSubmit}>
-        <div className="row g-3">
+       <h4 className="mb-4 border-bottom border-secondary pb-2">Datos de Envío y Pago</h4>
+       <form onSubmit={handleSubmit}>
+         <div className="row mb-3">
             <div className="col-md-6">
-                <label className="form-label text-white-50">Nombre</label>
-                <input className={inputClass} name="name" value={formData.name} readOnly />
+                <label className="form-label">Nombre Completo</label>
+                <input type="text" className="form-control bg-dark text-white border-secondary" name="name" value={formData.name} onChange={handleInputChange} required />
             </div>
             <div className="col-md-6">
-                <label className="form-label text-white-50">Email</label>
-                <input className={inputClass} name="email" value={formData.email} readOnly />
+                <label className="form-label">Email</label>
+                <input type="email" className="form-control bg-dark text-white border-secondary" name="email" value={formData.email} onChange={handleInputChange} required />
             </div>
+         </div>
 
-            <div className="col-12">
-                <label className="form-label text-white-50">Dirección *</label>
-                <input type="text" className={inputClass} name="address" value={formData.address} onChange={handleInputChange} placeholder="Calle 123" required />
+         <div className="mb-3">
+            <label className="form-label">Dirección</label>
+            <input type="text" className="form-control bg-dark text-white border-secondary" name="address" placeholder="Av. Principal 123" value={formData.address} onChange={handleInputChange} required />
+         </div>
+
+         <div className="row mb-3">
+            <div className="col-md-6">
+                <label className="form-label">Ciudad</label>
+                <input type="text" className="form-control bg-dark text-white border-secondary" name="city" value={formData.city} onChange={handleInputChange} required />
             </div>
             <div className="col-md-6">
-                <label className="form-label text-white-50">Ciudad *</label>
-                <input type="text" className={inputClass} name="city" value={formData.city} onChange={handleInputChange} required />
+                <label className="form-label">Código Postal</label>
+                <input type="text" className="form-control bg-dark text-white border-secondary" name="zip" value={formData.zip} onChange={handleInputChange} />
             </div>
-            <div className="col-md-6">
-                <label className="form-label text-white-50">Código Postal</label>
-                <input type="text" className={inputClass} name="zip" value={formData.zip} onChange={handleInputChange} />
-            </div>
+         </div>
 
-            <div className="col-12">
-                <label className="form-label text-white-50">Método de Pago *</label>
-                <select className={selectClass} name="paymentMethod" value={formData.paymentMethod} onChange={handleInputChange} required>
-                    <option value="" className="text-white">Selecciona...</option>
-                    <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
-                    <option value="Transferencia">Transferencia Bancaria</option>
-                    <option value="Efectivo">Efectivo al Recibir</option>
-                </select>
-            </div>
-        </div>
+         <div className="mb-4">
+            <label className="form-label">Método de Pago</label>
+            <select className="form-select bg-dark text-white border-secondary" name="paymentMethod" value={formData.paymentMethod} onChange={handleInputChange} required>
+                <option value="">Seleccionar...</option>
+                <option value="credit">Tarjeta de Crédito / Débito</option>
+                <option value="transfer">Transferencia Bancaria</option>
+                <option value="paypal">PayPal</option>
+            </select>
+         </div>
 
-        <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary">
+         <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary">
           <h4 className="mb-0">Total: <span className="text-success">{formatCLP(total)}</span></h4>
-          
-          {error && <div className="text-danger small">{error}</div>}
-
+          {error && <div className="text-danger small me-2">{error}</div>}
           <button type="submit" className="btn btn-success btn-lg fw-bold" disabled={!isLogged || loading || total === 0}>
             {loading ? 'Procesando...' : 'Pagar Ahora'}
           </button>
         </div>
-      </form>
+       </form>
     </div>
   );
 }

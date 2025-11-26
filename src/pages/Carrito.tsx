@@ -2,35 +2,32 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  getCartIds, addToCart, removeFromCart, removeAllFromCart, clearCart, 
-  activarOfertasFrontend // 🟢 IMPORTANTE
+  getCartIds, addToCart, removeFromCart, clearCart, 
+  activarOfertasFrontend, Product // 🟢 AHORA IMPORTAMOS "Product"
 } from '../data/data';
 import { api } from '../services/api';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  image: string;
-  offer: boolean;
-  description: string;
-}
+// (Usamos la que viene de data.ts para evitar conflictos de tipos)
 
 interface GroupedCartItem { product: Product; qty: number; }
 interface CartTotals { original: number; discounted: number; savings: number; }
-
-const DISCOUNT = 0.15; // 15% de descuento general
 
 function formatCLP(v: number | string): string {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Number(v) || 0);
 }
 
-// Calcula el precio unitario considerando si tiene oferta
+// Lógica de precio unitario
 function unitPrice(product: Product): number {
   const base = Number(product.price) || 0;
-  // Si el producto tiene oferta activada, aplicamos el descuento matemático
-  return product.offer ? Math.round(base * (1 - DISCOUNT)) : base;
+  if (!product.offer) return base;
+
+  const name = product.name.toLowerCase();
+  if (name.includes('catan')) return Math.round(base * 0.80);
+  if (name.includes('carcassonne')) return Math.round(base * 0.85);
+  if (name.includes('polera')) return Math.round(base * 0.50);
+  if (name.includes('playstation 5')) return Math.round(base * 0.90);
+  
+  return Math.round(base * 0.85); 
 }
 
 export default function Carrito(): JSX.Element {
@@ -38,6 +35,7 @@ export default function Carrito(): JSX.Element {
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Cargar productos
   const refreshCart = async () => {
     const ids = getCartIds();
     if (ids.length === 0) {
@@ -47,14 +45,13 @@ export default function Carrito(): JSX.Element {
     }
 
     try {
-      // 1. Traemos productos de la API (vienen sin oferta marcada)
       const rawProducts = await api.getProducts();
-
-      // 2. 🟢 APLICAMOS LA MAGIA: Activamos las ofertas en el frontend
+      // Ahora "allProducts" es de tipo Product[] (del archivo data.ts)
       const allProducts = activarOfertasFrontend(rawProducts);
       
-      // 3. Filtramos los productos que están en el carrito
-      const cartProducts = ids.map(id => allProducts.find((p: Product) => p.id === id)).filter(Boolean) as Product[];
+      // Filtramos usando el mismo tipo Product
+      const cartProducts = ids.map(id => allProducts.find((p: Product) => p.id === id))
+                              .filter((p): p is Product => !!p); // Filtro seguro para TypeScript
 
       setItems(cartProducts);
     } catch (error) {
@@ -66,12 +63,11 @@ export default function Carrito(): JSX.Element {
 
   useEffect(() => {
     refreshCart();
-    const h = () => refreshCart();
-    window.addEventListener('cart:change', h);
-    return () => window.removeEventListener('cart:change', h);
+    const handleStorageChange = () => refreshCart();
+    window.addEventListener('cart:change', handleStorageChange);
+    return () => window.removeEventListener('cart:change', handleStorageChange);
   }, []);
 
-  // Agrupación y Cálculos (Igual que antes)
   const rows: GroupedCartItem[] = useMemo(() => {
     const map = new Map<number, GroupedCartItem>();
     for (const p of items) {
@@ -87,6 +83,7 @@ export default function Carrito(): JSX.Element {
     for (const { product, qty } of rows) {
       const base = Number(product.price) || 0;
       const unit = unitPrice(product);
+      
       original += base * qty;
       discounted += unit * qty;
       savings += (base - unit) * qty;
@@ -97,7 +94,6 @@ export default function Carrito(): JSX.Element {
   const handleRemoveOne = (id: number) => removeFromCart(id);
   const handleAddOne = (id: number) => addToCart(id);
   const handleClear = () => clearCart();
-  const handleGoToCheckout = () => navigate('/checkout');
 
   if (loading && items.length === 0) return <div className="container py-5 text-center text-white"><h3>Cargando...</h3></div>;
 
@@ -127,7 +123,7 @@ export default function Carrito(): JSX.Element {
               <th style={{ width: 80 }}></th>
               <th>Producto</th>
               <th className="text-center">Cantidad</th>
-              <th className="text-end">Precio</th>
+              <th className="text-end">Precio Unitario</th>
               <th className="text-end">Subtotal</th>
             </tr>
           </thead>
@@ -136,6 +132,7 @@ export default function Carrito(): JSX.Element {
               const base = Number(product.price) || 0;
               const unit = unitPrice(product);
               const subTotal = unit * qty;
+              
               return (
                 <tr key={product.id}>
                   <td className="p-2">
@@ -143,7 +140,8 @@ export default function Carrito(): JSX.Element {
                   </td>
                   <td>
                     <div className="fw-semibold text-white">{product.name}</div>
-                    <div className="text-white-50 small">{product.category}</div>
+                    {product.offer && <span className="badge bg-warning text-dark me-2">¡Oferta!</span>}
+                    <span className="text-white-50 small">{product.category}</span>
                   </td>
                   <td className="text-center">
                     <div className="btn-group" role="group">
@@ -155,8 +153,8 @@ export default function Carrito(): JSX.Element {
                   <td className="text-end">
                     {product.offer ? (
                       <>
-                        <div className="text-muted text-decoration-line-through small">{formatCLP(base)}</div>
-                        <div className="fw-bold text-white">{formatCLP(unit)}</div>
+                        <div className="text-muted text-decoration-line-through small" style={{fontSize: '0.8rem'}}>{formatCLP(base)}</div>
+                        <div className="fw-bold text-warning">{formatCLP(unit)}</div>
                       </>
                     ) : (<div className="fw-bold text-white">{formatCLP(base)}</div>)}
                   </td>
@@ -166,16 +164,25 @@ export default function Carrito(): JSX.Element {
             })}
           </tbody>
           <tfoot>
+            {totals.savings > 0 && (
+                <tr>
+                  <td colSpan={3}></td>
+                  <td className="text-end text-white-50">Ahorro total:</td>
+                  <td className="text-end text-warning fw-bold">-{formatCLP(totals.savings)}</td>
+                </tr>
+            )}
             <tr>
               <td colSpan={3}></td>
-              <td className="text-end fw-bold text-white fs-5">Total:</td>
-              <td className="text-end fw-bold text-success fs-5">{formatCLP(totals.discounted)}</td>
+              <td className="text-end fw-bold text-white fs-5">Total a Pagar:</td>
+              <td className="text-end fw-bold text-success fs-4">{formatCLP(totals.discounted)}</td>
             </tr>
           </tfoot>
         </table>
       </div>
       <div className="d-flex justify-content-end mt-4">
-        <button className="btn btn-success btn-lg px-5 fw-bold" onClick={handleGoToCheckout}>Ir a Pagar</button>
+        <button className="btn btn-success btn-lg px-5 fw-bold shadow" onClick={() => navigate('/checkout')}>
+           Pagar {formatCLP(totals.discounted)}
+        </button>
       </div>
     </div>
   );

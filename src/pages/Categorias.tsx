@@ -2,30 +2,37 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { api } from '../services/api'; // Importamos la API real
-
-// Definimos la interfaz aquí o impórtala de types
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  image: string;
-  offer: boolean;
-  description: string;
-}
+import { api } from '../services/api';
+import { Product } from '../data/data';
 
 export default function Categorias(): JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [allProducts, setAllProducts] = useState<Product[]>([]); // Estado para productos reales
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Cargar productos desde el Backend
+  // Cargar productos y normalizar categorías
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const data = await api.getProducts();
-        setAllProducts(data);
+        
+        // 🟢 NORMALIZACIÓN DE CATEGORÍAS
+        const normalizedData = data.map((p: any) => {
+            // 1. Unificar Mobiliario y Periféricos en "Accesorios"
+            if (p.category === 'Mobiliario' || 
+                p.category === 'Periféricos' || 
+                p.category === 'Perifericos') {
+                return { ...p, category: 'Accesorios' };
+            }
+            // 2. 🟢 CORRECCIÓN: Cambiar "Computadoras" por "PCs" para que el botón funcione
+            if (p.category === 'Computadoras' || p.category === 'Computadores') {
+                 return { ...p, category: 'PCs' };
+            }
+            
+            return p;
+        });
+
+        setAllProducts(normalizedData);
       } catch (error) {
         console.error("Error cargando productos", error);
       } finally {
@@ -38,13 +45,14 @@ export default function Categorias(): JSX.Element {
   const selectedCategory = searchParams.get('cat') || 'Todo';
   const searchQuery = searchParams.get('q') || '';
 
-  // 2. Calcular categorías dinámicamente basadas en lo que hay en la BD
+  // Generar lista de categorías
   const categories = useMemo(() => {
-    const uniqueCats = Array.from(new Set(allProducts.map(p => p.category)));
+    if (allProducts.length === 0) return ['Todo'];
+    const uniqueCats = Array.from(new Set(allProducts.map(p => p.category))).sort();
     return ['Todo', ...uniqueCats];
   }, [allProducts]);
 
-  // 3. Filtrar
+  // Filtrar productos
   const filteredProducts = useMemo(() => {
     let result = allProducts;
 
@@ -54,22 +62,25 @@ export default function Categorias(): JSX.Element {
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      result = result.filter((p) => 
-        p.name.toLowerCase().includes(q) || 
-        p.description.toLowerCase().includes(q)
-      );
+      result = result.filter((p) => {
+        const nameMatch = p.name.toLowerCase().includes(q);
+        const descMatch = (p.description || '').toLowerCase().includes(q);
+        return nameMatch || descMatch;
+      });
     }
     
     return result;
   }, [selectedCategory, searchQuery, allProducts]);
 
-  // 4. Helper para contar
   const getCount = (cat: string) => {
     let res = allProducts;
     if (cat !== 'Todo') res = res.filter(p => p.category === cat);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      res = res.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+      res = res.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        (p.description || '').toLowerCase().includes(q)
+      );
     }
     return res.length;
   };
@@ -100,6 +111,8 @@ export default function Categorias(): JSX.Element {
             <ul className="list-group list-group-flush">
               {categories.map((cat) => {
                 const isActive = selectedCategory === cat;
+                const count = getCount(cat);
+                
                 return (
                   <li key={cat} className="list-group-item bg-dark border-secondary p-0">
                     <button
@@ -110,7 +123,7 @@ export default function Categorias(): JSX.Element {
                     >
                       <span>{cat}</span>
                       <span className={`badge ${isActive ? 'bg-light text-primary' : 'bg-secondary text-white'}`}>
-                        {getCount(cat)}
+                        {count}
                       </span>
                     </button>
                   </li>
@@ -120,15 +133,15 @@ export default function Categorias(): JSX.Element {
           </div>
         </div>
 
-        {/* CONTENIDO PRINCIPAL */}
+        {/* LISTA DE PRODUCTOS */}
         <div className="col-lg-9">
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 p-3 rounded bg-dark border border-secondary shadow-sm">
             <div>
               <h2 className="mb-0 text-white fs-3">
-                {searchQuery ? `Resultados para "${searchQuery}"` : 'Catálogo de Productos'}
+                {searchQuery ? `Resultados para "${searchQuery}"` : selectedCategory === 'Todo' ? 'Todo el Catálogo' : selectedCategory}
               </h2>
               <span className="text-muted">
-                Mostrando {filteredProducts.length} productos de la Base de Datos
+                Mostrando {filteredProducts.length} productos
               </span>
             </div>
             {searchQuery && (
@@ -139,16 +152,21 @@ export default function Categorias(): JSX.Element {
           </div>
 
           <div className="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
-            {filteredProducts.map((product) => (
-              <div key={product.id} className="col">
-                <ProductCard product={product} />
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product) => (
+                <div key={product.id} className="col">
+                  <ProductCard product={product} />
+                </div>
+              ))
+            ) : (
+              <div className="col-12 text-center py-5">
+                <h3 className="text-white-50">No hay productos en esta categoría.</h3>
+                <button className="btn btn-outline-light mt-3" onClick={() => handleCategoryChange('Todo')}>
+                  Ver todo el catálogo
+                </button>
               </div>
-            ))}
+            )}
           </div>
-          
-          {filteredProducts.length === 0 && (
-             <div className="text-center py-5"><h4 className="text-white">No hay productos aquí.</h4></div>
-          )}
         </div>
       </div>
     </div>

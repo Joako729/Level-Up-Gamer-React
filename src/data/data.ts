@@ -1,97 +1,60 @@
 // src/data/data.ts
-
 export interface Product {
   id: number;
   name: string;
   price: number;
   category: string;
   image: string;
-  offer: boolean;
-  description: string;
-  offerLabel?: string | null;
+  offer?: boolean;
+  description?: string;
 }
 
-export interface UserProfile {
-  name: string;
-  email: string;
-}
-
-const products: Product[] = []; // Se mantiene vacío, usamos API.
-
-// 🟢 NUEVA FUNCIÓN MAESTRA PARA ACTIVAR OFERTAS
-// Recibe los productos de la API y les "pega" la oferta si coinciden con los nombres.
-export function activarOfertasFrontend(listaProductos: any[]): Product[] {
-  return listaProductos.map(p => {
-    // Normalizamos el nombre para buscar (minúsculas)
-    const nombre = p.name.toLowerCase();
-    
-    // LÓGICA DE TUS 4 OFERTAS:
-    if (nombre.includes('catan')) {
-      return { ...p, offer: true, offerLabel: '20% OFF' };
-    }
-    if (nombre.includes('carcassonne')) {
-      return { ...p, offer: true, offerLabel: '15% OFF' };
-    }
-    if (nombre.includes('playstation 5')) {
-      return { ...p, offer: true, offerLabel: '¡Oportunidad!' };
-    }
-    if (nombre.includes('polera')) { // Polera Level-Up
-      return { ...p, offer: true, offerLabel: '2x1' };
-    }
-
-    // Si no es ninguno, devolvemos el producto tal cual viene de la BD
-    return p;
-  });
-}
-
-// --- LÓGICA DEL CARRITO ---
+// Clave para guardar en el navegador
 const CART_KEY = 'lvlup_cart';
 
-export function getCartIds(): number[] {
-  try {
-    const raw = localStorage.getItem(CART_KEY);
-    return raw ? (JSON.parse(raw) as number[]) : [];
-  } catch { return []; }
-}
+// Obtener IDs del carrito
+export const getCartIds = (): number[] => {
+  return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+};
 
-function saveCart(list: number[]): void {
-  localStorage.setItem(CART_KEY, JSON.stringify(list));
+// 🟢 FUNCIÓN: Agregar 1 unidad
+export const addToCart = (id: number) => {
+  const cart = getCartIds();
+  cart.push(id); // Agregamos el ID
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  // Avisamos que el carrito cambió
   window.dispatchEvent(new Event('cart:change'));
-}
+};
 
-export function addToCart(id: number): void {
-  const ids = getCartIds();
-  ids.push(id);
-  saveCart(ids);
-}
+// 🟢 FUNCIÓN: Quitar 1 unidad (botón -)
+export const removeFromCart = (id: number) => {
+  const cart = getCartIds();
+  const index = cart.indexOf(id); // Buscamos la primera aparición del producto
+  if (index > -1) {
+    cart.splice(index, 1); // Lo borramos
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    window.dispatchEvent(new Event('cart:change')); // Avisamos
+  }
+};
 
-export function removeFromCart(id: number): void {
-  const ids = getCartIds();
-  const i = ids.indexOf(id);
-  if (i !== -1) ids.splice(i, 1);
-  saveCart(ids);
-}
+// 🟢 FUNCIÓN: Vaciar carrito completo
+export const clearCart = () => {
+  localStorage.removeItem(CART_KEY);
+  window.dispatchEvent(new Event('cart:change'));
+};
 
-export function removeAllFromCart(id: number): void {
-  const ids = getCartIds();
-  const newIds = ids.filter(itemId => itemId !== id);
-  saveCart(newIds);
-}
-
-export function clearCart(): void {
-  saveCart([]);
-}
-
-// Helpers de compatibilidad
-export function getCart(): Product[] { return []; }
-export function listProducts(): Product[] { return products; }
-export function listOffers(): Product[] { return products; }
-export function listProductsByCategory(c: string|null): Product[] { return products; }
-export function listCategories(): string[] { return ['Todo']; }
-export function getUserProfile(): UserProfile { return { name: 'Invitado', email: '' }; }
-export function saveOrder(o: any): boolean { console.log('Pedido:', o); return true; }
-export function createProduct(n: any): Product { return { id: 0, ...n }; }
-export function updateProduct(id: number, u: any): Product | undefined { return undefined; }
-export function deleteProduct(id: number): boolean { return true; }
-
-export { products as default };
+// 🟢 UTILIDAD: Activar ofertas en el Frontend (usado en Carrito y Checkout)
+export const activarOfertasFrontend = (products: any[]): Product[] => {
+  return products.map((p: any) => {
+      const nameLower = p.name.toLowerCase();
+      let isOffer = false;
+      // Lista maestra de ofertas
+      if (nameLower.includes('catan') || 
+          nameLower.includes('carcassonne') || 
+          nameLower.includes('polera') || 
+          nameLower.includes('playstation 5')) {
+          isOffer = true;
+      }
+      return { ...p, offer: isOffer };
+  });
+};

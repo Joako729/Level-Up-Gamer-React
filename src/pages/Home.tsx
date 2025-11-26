@@ -19,9 +19,7 @@ const newsItems = [
 ];
 
 export default function Home(): JSX.Element {
-  // Estado para las ofertas exclusivas (Catan, PS5, etc.)
   const [exclusiveOffers, setExclusiveOffers] = useState<Product[]>([]);
-  // Estado para ofertas generales de la BD (si existen marcadas en el backend)
   const [dbOffers, setDbOffers] = useState<Product[]>([]);
   
   useEffect(() => {
@@ -29,15 +27,28 @@ export default function Home(): JSX.Element {
       try {
         const products = await api.getProducts();
 
-        // 1. Filtrar ofertas generales (las que vienen con offer=true desde la BD)
-        setDbOffers(products.filter((p: any) => p.offer === true));
+        // 🟢 NORMALIZACIÓN DE DATOS (Misma lógica que en Categorías)
+        const normalizedProducts = products.map((p: any) => {
+            // Accesorios
+            if (p.category === 'Mobiliario' || p.category === 'Periféricos' || p.category === 'Perifericos') {
+                return { ...p, category: 'Accesorios' };
+            }
+            // PCs
+            if (p.category === 'Computadoras' || p.category === 'Computadores') {
+                return { ...p, category: 'PCs' };
+            }
+            return p;
+        });
 
-        // 2. Configurar manualmente las "Ofertas Exclusivas" solicitadas
+        // Filtrar ofertas generales
+        setDbOffers(normalizedProducts.filter((p: any) => p.offer === true));
+
+        // Configurar ofertas exclusivas
         const targetNames = ['Catan', 'Carcassonne', 'PlayStation 5', 'Polera'];
         const manualOffers: Product[] = [];
 
         targetNames.forEach(name => {
-          const found = products.find((p: any) => p.name.toLowerCase().includes(name.toLowerCase()));
+          const found = normalizedProducts.find((p: any) => p.name.toLowerCase().includes(name.toLowerCase()));
           if (found) {
             manualOffers.push({ ...found, offer: true, offerLabel: 'Exclusivo' });
           }
@@ -56,7 +67,7 @@ export default function Home(): JSX.Element {
   return (
     <div className="home-page" style={{ color: '#E0E0E0', minHeight: '100vh', paddingBottom: '50px' }}>
       
-      {/* Banner Principal */}
+      {/* Banner */}
       <div className="jumbotron jumbotron-fluid text-white text-center py-5 mb-5 rounded-3 shadow-lg" 
            style={{ backgroundImage: 'linear-gradient(135deg, #0072ff 0%, #00c6ff 100%)' }}>
         <div className="container">
@@ -84,6 +95,9 @@ export default function Home(): JSX.Element {
                             <div className="w-100 p-5 text-white" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0))' }}>
                                 <h3 className="fw-bold">{news.title}</h3>
                                 <p className="fs-5">{news.summary}</p>
+                                <a href={news.link} target="_blank" rel="noreferrer" className="btn btn-info text-white mt-2">
+                                  Leer nota completa 🔗
+                                </a>
                             </div>
                          </div>
                     </div>
@@ -100,7 +114,7 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* 🌟 Ofertas Exclusivas (Catan, PS5, etc.) */}
+      {/* Ofertas Exclusivas */}
       <section className="mb-5">
         <h2 className="text-center mb-4 text-light">🌟 Ofertas Exclusivas</h2>
         {exclusiveOffers.length > 0 ? (
@@ -116,27 +130,13 @@ export default function Home(): JSX.Element {
         )}
       </section>
 
-      {/* Ofertas Generales de BD (Opcional) */}
-      {dbOffers.length > 0 && (
-        <section className="mb-5">
-            <h2 className="text-center mb-4 text-light">⚡ Más Ofertas</h2>
-            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 px-4">
-                {dbOffers.map((product) => (
-                <div key={product.id} className="col">
-                    <ProductCard product={product} />
-                </div>
-                ))}
-            </div>
-        </section>
-      )}
-
       {/* Categorías */}
       <section className="mb-5">
         <h2 className="text-center mb-4 text-light">🎮 Explora por Categoría</h2>
         <div className="row g-3 justify-content-center px-4"> 
           {mainCategories.map((cat, index) => (
             <div key={index} className="col-6 col-md-4">
-              <NavLink to={`/categorias?cat=${cat.name}`} className="card text-center text-decoration-none shadow-sm bg-dark text-light border-secondary">
+              <NavLink to={`/categorias?cat=${cat.name}`} className="card text-center text-decoration-none shadow-sm bg-dark text-light border-secondary hover-zoom">
                 <img src={cat.image} className="card-img-top mx-auto mt-3" alt={cat.name} style={{ height: 100, objectFit: 'contain' }} />
                 <div className="card-body"><h5>{cat.name}</h5></div>
               </NavLink>
