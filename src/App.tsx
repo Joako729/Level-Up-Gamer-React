@@ -13,6 +13,9 @@ import Registro from './pages/Registro';
 import CompraExitosa from './pages/CompraExitosa';
 import CompraFallida from './pages/CompraFallida';
 import Perfil from './pages/Perfil';
+import AdminPanel from './pages/AdminPanel';
+import ProductDetail from './pages/ProductDetail'; // 🟢 NUEVO IMPORT
+
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -53,8 +56,16 @@ export default function App(): JSX.Element {
           <Route path="/compra-fallida" element={<CompraFallida />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+          
           <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-          <Route path="/admin" element={<Navigate to="/perfil" replace />} />
+          <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+          
+          {/* Si tienes VendedorPanel */}
+          {/* <Route path="/vendedor" element={<ProtectedRoute><VendedorPanel /></ProtectedRoute>} /> */}
+
+          {/* 🟢 NUEVA RUTA DETALLE */}
+          <Route path="/producto/:id" element={<ProductDetail />} />
+
         </Routes>
       </main>
       <Footer />

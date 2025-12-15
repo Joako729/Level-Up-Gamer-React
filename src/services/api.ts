@@ -72,7 +72,6 @@ export const api = {
     if (!res.ok) return [];
     return res.json();
   },
-  // NUEVO: Borrar usuario
   deleteUser: async (id: number) => {
     const res = await fetch(`${API_URL}/usuarios/${id}`, {
       method: "DELETE", headers: getAuthHeaders()
@@ -99,12 +98,25 @@ export const api = {
     if (!res.ok) return [];
     return res.json();
   },
-  // NUEVO: Borrar pedido
   deleteOrder: async (id: number) => {
     const res = await fetch(`${API_URL}/pedidos/${id}`, {
       method: "DELETE", headers: getAuthHeaders()
     });
     if (!res.ok) throw new Error("Error borrar pedido");
     return true;
+  },
+
+  // --- NUEVO: RESEÑAS ---
+  getReviewsByProduct: async (productId: number) => {
+    const res = await fetch(`${API_URL}/resenias/producto/${productId}`);
+    if (!res.ok) return [];
+    return res.json();
+  },
+  createReview: async (data: { productoId: number, emailUsuario: string, comentario: string, calificacion: number }) => {
+    const res = await fetch(`${API_URL}/resenias`, {
+      method: "POST", headers: getAuthHeaders(), body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("Error al publicar reseña");
+    return res.json();
   }
 };
