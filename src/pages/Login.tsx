@@ -21,7 +21,7 @@ export default function Login(): JSX.Element {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user_role', data.rol);
       localStorage.setItem('user_name', data.nombre);
-      localStorage.setItem('user_email', data.email); // <--- ESTO FALTABA
+      localStorage.setItem('user_email', data.email);
       localStorage.setItem('user_id', data.id);
       localStorage.setItem('user_logged', '1');
 
@@ -47,14 +47,30 @@ export default function Login(): JSX.Element {
               {error && <div className="alert alert-danger text-center">{error}</div>}
               <form onSubmit={handleLogin}>
                 <div className="mb-3">
-                  <label className="form-label text-light">Correo Electrónico</label>
-                  <input type="email" className="form-control bg-secondary text-white border-0" 
-                    value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  {/* AGREGADO: htmlFor para conectar con el input */}
+                  <label htmlFor="login-email" className="form-label text-light">Correo Electrónico</label>
+                  {/* AGREGADO: id para que el label lo encuentre */}
+                  <input 
+                    id="login-email"
+                    type="email" 
+                    className="form-control bg-secondary text-white border-0" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                  />
                 </div>
                 <div className="mb-4">
-                  <label className="form-label text-light">Contraseña</label>
-                  <input type="password" className="form-control bg-secondary text-white border-0" 
-                    value={pass} onChange={(e) => setPass(e.target.value)} required />
+                  {/* AGREGADO: htmlFor para conectar con el input */}
+                  <label htmlFor="login-pass" className="form-label text-light">Contraseña</label>
+                  {/* AGREGADO: id para que el label lo encuentre */}
+                  <input 
+                    id="login-pass"
+                    type="password" 
+                    className="form-control bg-secondary text-white border-0" 
+                    value={pass} 
+                    onChange={(e) => setPass(e.target.value)} 
+                    required 
+                  />
                 </div>
                 <button type="submit" className="btn btn-primary w-100 fw-bold btn-lg" disabled={loading}>
                   {loading ? 'Cargando...' : 'Ingresar'}
