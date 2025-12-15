@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import AdminPanel from './AdminPanel';
+import AdminPanel from './AdminPanel'; // Usamos el mismo panel del Admin
 
 interface User { id: number; nombre: string; email: string; rol: string; }
 interface Order { id: number; fecha: string; total: number; estado: string; usuario?: { email: string }; detalles?: any[]; }
@@ -17,6 +17,7 @@ export default function Perfil(): JSX.Element {
     const r = localStorage.getItem('user_role') || '';
     setRole(r);
     
+    // Si es Admin, cargamos todo. Si es Vendedor o Cliente, cargamos sus compras.
     if (r === 'ADMIN') {
         loadOrders();
     } else {
@@ -33,6 +34,7 @@ export default function Perfil(): JSX.Element {
     if (tab === 'usuarios') loadUsers();
     if (tab === 'pedidos') loadOrders();
     if (tab === 'mis-compras') loadMyOrders();
+    // 'productos' no necesita carga aquí porque AdminPanel lo hace solo
   };
 
   const handleLogout = () => {
@@ -40,12 +42,11 @@ export default function Perfil(): JSX.Element {
     window.location.href = '/#/login';
   };
 
-  // --- NUEVAS FUNCIONES DE BORRADO ---
   const handleDeleteUser = async (id: number) => {
     if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
         try {
             await api.deleteUser(id);
-            loadUsers(); // Recargar lista
+            loadUsers(); 
         } catch (e) { alert('No se pudo eliminar el usuario.'); }
     }
   };
@@ -54,39 +55,61 @@ export default function Perfil(): JSX.Element {
     if (window.confirm('¿Estás seguro de eliminar este pedido?')) {
         try {
             await api.deleteOrder(id);
-            loadOrders(); // Recargar lista
+            loadOrders(); 
         } catch (e) { alert('No se pudo eliminar el pedido.'); }
     }
   };
+
+  // Función auxiliar para ver si puede gestionar productos
+  const canManageProducts = role === 'ADMIN' || role === 'VENDEDOR';
 
   return (
     <div className="container py-5 text-white">
       <div className="d-flex justify-content-between align-items-center mb-5 border-bottom border-secondary pb-3">
         <div>
             <h2 className="mb-0">Mi Cuenta</h2>
-            <span className={`badge mt-1 ${role === 'ADMIN' ? 'bg-danger' : 'bg-primary'}`}>{role}</span>
+            <span className={`badge mt-1 ${role === 'ADMIN' ? 'bg-danger' : role === 'VENDEDOR' ? 'bg-info text-dark' : 'bg-primary'}`}>
+                {role}
+            </span>
         </div>
         <button onClick={handleLogout} className="btn btn-outline-light btn-sm">Cerrar Sesión</button>
       </div>
 
       <div className="row">
+        {/* COLUMNA IZQUIERDA: MENÚ DE PESTAÑAS */}
         <div className="col-md-3 mb-4">
           <div className="list-group shadow-sm">
-            <button className={`list-group-item list-group-item-action border-secondary fw-bold ${activeTab==='perfil' ? 'active bg-primary text-white' : 'bg-dark text-white'}`} 
-              onClick={()=>handleTabChange('perfil')}>👤 Mis Datos</button>
+            <button 
+                className={`list-group-item list-group-item-action border-secondary fw-bold ${activeTab==='perfil' ? 'active bg-primary text-white' : 'bg-dark text-white'}`} 
+                onClick={()=>handleTabChange('perfil')}>
+                👤 Mis Datos
+            </button>
             
-            {role === 'ADMIN' ? (
+            {/* 🟢 MODIFICACIÓN: Botón Productos visible para ADMIN y VENDEDOR */}
+            {canManageProducts && (
+                <button 
+                    className={`list-group-item list-group-item-action border-secondary ${activeTab==='productos'?'active bg-primary text-white':'bg-dark text-white'}`} 
+                    onClick={()=>handleTabChange('productos')}>
+                    📦 Productos
+                </button>
+            )}
+
+            {/* Botones exclusivos de ADMIN */}
+            {role === 'ADMIN' && (
               <>
-                <button className={`list-group-item list-group-item-action border-secondary ${activeTab==='productos'?'active bg-primary text-white':'bg-dark text-white'}`} onClick={()=>handleTabChange('productos')}>📦 Productos</button>
                 <button className={`list-group-item list-group-item-action border-secondary ${activeTab==='usuarios'?'active bg-primary text-white':'bg-dark text-white'}`} onClick={()=>handleTabChange('usuarios')}>👥 Usuarios</button>
                 <button className={`list-group-item list-group-item-action border-secondary ${activeTab==='pedidos'?'active bg-primary text-white':'bg-dark text-white'}`} onClick={()=>handleTabChange('pedidos')}>🛒 Ventas Globales</button>
               </>
-            ) : (
+            )}
+
+            {/* Botón Historial para NO Admins (Clientes y Vendedores) */}
+            {role !== 'ADMIN' && (
               <button className={`list-group-item list-group-item-action border-secondary ${activeTab==='mis-compras'?'active bg-primary text-white':'bg-dark text-white'}`} onClick={()=>handleTabChange('mis-compras')}>🛍️ Historial de Compras</button>
             )}
           </div>
         </div>
 
+        {/* COLUMNA DERECHA: CONTENIDO */}
         <div className="col-md-9">
           
           {/* VISTA PERFIL */}
@@ -114,10 +137,10 @@ export default function Perfil(): JSX.Element {
             </div>
           )}
 
-          {/* PRODUCTOS */}
+          {/* VISTA PRODUCTOS (Se usa AdminPanel, que ya funciona para gestionar) */}
           {activeTab === 'productos' && <AdminPanel />}
 
-          {/* USUARIOS CON BOTÓN DE BORRAR */}
+          {/* VISTA USUARIOS (Solo Admin) */}
           {activeTab === 'usuarios' && (
             <div className="card bg-dark border-secondary p-3 shadow">
                 <h4 className="text-white mb-3">Usuarios</h4>
@@ -137,7 +160,7 @@ export default function Perfil(): JSX.Element {
             </div>
           )}
 
-          {/* VENTAS (ADMIN) CON BOTÓN DE BORRAR */}
+          {/* VISTA VENTAS GLOBALES (Solo Admin) */}
           {activeTab === 'pedidos' && (
             <div className="card bg-dark border-secondary p-3 shadow">
                 <h4 className="text-white mb-3">Historial de Ventas</h4>
@@ -167,7 +190,7 @@ export default function Perfil(): JSX.Element {
             </div>
           )}
 
-          {/* MIS COMPRAS (CLIENTE) */}
+          {/* VISTA MIS COMPRAS (Para Cliente y Vendedor) */}
           {activeTab === 'mis-compras' && (
             <div className="card bg-dark border-secondary p-3 shadow">
                 <h4 className="text-white mb-3">Mis Pedidos</h4>
